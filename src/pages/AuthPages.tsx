@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { authApi, collegesApi } from '../api/resources'
 import raisingHand from '../assets/Raising hand-bro.svg'
 import { useAuth } from '../auth/AuthContext'
+import { useCollegeOptions } from '../components/colleges'
 import { Button, ErrorNote, Spinner } from '../components/ui'
 import { cn, formatRating, plural } from '../lib/format'
 import { applyServerErrors } from '../lib/forms'
@@ -22,7 +23,11 @@ const registerSchema = z.object({
   username: z.string().trim().min(3, 'At least 3 characters').max(30, 'At most 30 characters'),
   email: z.email('Enter a valid email address'),
   password: z.string().min(8, 'At least 8 characters').max(72, 'At most 72 characters'),
+  college: z.string().min(1, 'Choose the college you attend'),
 })
+
+// The same down-arrow the other dropdowns use, for the one on the sign-up form
+const SELECT_CHEVRON = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2352525b' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`
 
 type LoginValues = z.infer<typeof loginSchema>
 type RegisterValues = z.infer<typeof registerSchema>
@@ -211,13 +216,15 @@ export function LoginPage() {
 export function RegisterPage() {
   const { login } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
-  const form = useForm<RegisterValues>({ resolver: zodResolver(registerSchema), defaultValues: { username: '', email: '', password: '' } })
+  const form = useForm<RegisterValues>({ resolver: zodResolver(registerSchema), defaultValues: { username: '', email: '', password: '', college: '' } })
   const errors = form.formState.errors
+  const colleges = useCollegeOptions()
+  const collegeFieldId = useId()
 
   const mutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: ({ data }) => login(data),
-    onError: (error) => setFormError(applyServerErrors(error, form.setError, ['username', 'email', 'password'])),
+    onError: (error) => setFormError(applyServerErrors(error, form.setError, ['username', 'email', 'password', 'college'])),
   })
 
   return (
@@ -250,6 +257,36 @@ export function RegisterPage() {
         <PillInput label="Username" autoComplete="username" placeholder="At least 3 characters" error={errors.username?.message} {...form.register('username')} />
         <PillInput label="Email" type="email" autoComplete="email" placeholder="you@example.com" error={errors.email?.message} {...form.register('email')} />
         <PillInput label="Password" type="password" autoComplete="new-password" placeholder="At least 8 characters" error={errors.password?.message} {...form.register('password')} />
+        {/* Every student belongs to a college; it decides which teachers can see the account */}
+        <div>
+          <label htmlFor={collegeFieldId} className="mb-2 block text-sm font-medium">
+            Your college
+          </label>
+          <select
+            id={collegeFieldId}
+            aria-invalid={Boolean(errors.college)}
+            aria-describedby={errors.college ? `${collegeFieldId}-error` : undefined}
+            disabled={colleges.isPending}
+            className={cn(
+              'h-14 w-full cursor-pointer appearance-none truncate rounded-full border-[1.5px] bg-white bg-[length:1rem] bg-[position:right_1.25rem_center] bg-no-repeat pr-12 pl-6 text-base focus:border-ink focus:ring-1 focus:ring-ink focus:outline-none',
+              errors.college ? 'border-red-500' : 'border-zinc-300',
+            )}
+            style={{ backgroundImage: SELECT_CHEVRON }}
+            {...form.register('college')}
+          >
+            <option value="">{colleges.isPending ? 'Loading colleges…' : colleges.data?.length ? 'Select your college' : 'No colleges have been added yet'}</option>
+            {colleges.data?.map((college) => (
+              <option key={college.collegeId} value={college.collegeId}>
+                {college.name}
+              </option>
+            ))}
+          </select>
+          {errors.college && (
+            <p id={`${collegeFieldId}-error`} className="mt-1.5 text-sm font-medium text-red-600">
+              {errors.college.message}
+            </p>
+          )}
+        </div>
         <Button type="submit" className="!mt-8 !h-14 w-full !rounded-full !text-base" loading={mutation.isPending}>
           Create account
         </Button>

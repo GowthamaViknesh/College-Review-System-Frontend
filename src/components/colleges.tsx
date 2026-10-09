@@ -37,6 +37,16 @@ function useReviewedColleges() {
   return new Set(reviewed.data)
 }
 
+// Every college by name, for a dropdown. Anyone may read the list, so it also works on the sign-up page.
+export function useCollegeOptions(enabled = true) {
+  return useQuery({
+    queryKey: ['colleges', 'options'],
+    queryFn: () => collegesApi.list({ sort: 'name', limit: 100 }).then((result) => result.data.colleges.map(({ collegeId, name }) => ({ collegeId, name }))),
+    enabled,
+    staleTime: 60_000,
+  })
+}
+
 // One line of a college list: name and place on the left, rating and review count, then the actions
 export function CollegeRow({ college, actions }: { college: College; actions?: ReactNode }) {
   const { can } = useAuth()

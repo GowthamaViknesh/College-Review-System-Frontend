@@ -241,6 +241,22 @@ export function Pagination({ meta, onPage, always = false }: { meta?: Meta; onPa
   )
 }
 
+// How many rows a table page can show; the first is what a table opens with
+export const PAGE_SIZES = [10, 20, 30, 40, 50]
+
+// The "10 per page" dropdown. what names the rows for screen readers, e.g. "Accounts".
+export function PageSizeSelect({ value, onChange, what, className }: { value: number; onChange: (size: number) => void; what: string; className?: string }) {
+  return (
+    <Select value={value} onChange={(event) => onChange(Number(event.target.value))} aria-label={`${what} per page`} className={className}>
+      {PAGE_SIZES.map((size) => (
+        <option key={size} value={size}>
+          {size} per page
+        </option>
+      ))}
+    </Select>
+  )
+}
+
 // ---------- Modal ----------
 
 export function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {

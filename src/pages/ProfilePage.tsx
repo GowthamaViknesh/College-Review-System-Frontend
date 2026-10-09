@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Mail, ShieldCheck } from 'lucide-react'
+import { CalendarDays, GraduationCap, Mail, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -222,6 +222,13 @@ export function ProfilePage() {
                 <dt className="sr-only">Email</dt>
                 <dd className="truncate">{user.email}</dd>
               </div>
+              {user.college && (
+                <div className="flex items-center gap-2.5">
+                  <GraduationCap className="size-4 shrink-0 text-zinc-500" aria-hidden />
+                  <dt className="sr-only">College</dt>
+                  <dd className="truncate">{user.college.name}</dd>
+                </div>
+              )}
               <div className="flex items-center gap-2.5">
                 <CalendarDays className="size-4 shrink-0 text-zinc-500" aria-hidden />
                 <dt className="sr-only">Member since</dt>

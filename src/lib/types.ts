@@ -22,6 +22,8 @@ export interface User {
   username: string
   email: string
   role: RoleRef | null
+  // The college they belong to. Every teacher and student has one; administrators do not.
+  college: { collegeId: string; name: string } | null
   // Address of the profile picture; null if they have not uploaded one
   avatar: string | null
   // When they last logged in or used the site, to about a minute; null if they never have
