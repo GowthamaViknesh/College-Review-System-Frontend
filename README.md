@@ -36,7 +36,7 @@ Log in with the seeded admin, `admin@example.com` / `Password@123`. After `npm r
 
 1. In your hosting provider's settings for the frontend, set `VITE_API_URL` to the backend's address. It is baked in when the site is built, so changing it later needs a rebuild.
 2. Build command `npm run build`; the folder to publish is `dist`.
-3. Add a rewrite so every path serves `index.html` (on Render static sites: a rewrite from `/*` to `/index.html`). The app handles its own addresses in the browser, so without this, opening or refreshing `/dashboard` directly returns the host's "not found" page.
+3. Add a rewrite so every path serves `index.html` (on Vercel this is already done by `vercel.json`; on Render static sites, add a rewrite from `/*` to `/index.html`). The app handles its own addresses in the browser, so without this, opening or refreshing `/dashboard` directly returns the host's "not found" page.
 4. On the backend, add the frontend's address to `CORS_ORIGIN`. Until it is there, the browser blocks every API call.
 
 ## Pages and who sees them

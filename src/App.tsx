@@ -1,10 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { lazy } from 'react'
-import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { AppLayout, RequirePermission } from './components/Layout'
 import { ToastProvider } from './components/Toast'
-import { EmptyState } from './components/ui'
 import { ApiError } from './lib/api'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
 
@@ -29,16 +28,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
-function NotFoundPage() {
-  return (
-    <EmptyState title="Page not found">
-      <Link to="/dashboard" className="font-semibold text-ink underline underline-offset-4">
-        Back to the dashboard
-      </Link>
-    </EmptyState>
-  )
-}
 
 export default function App() {
   return (
@@ -90,8 +79,10 @@ export default function App() {
                     </RequirePermission>
                   }
                 />
-                <Route path="*" element={<NotFoundPage />} />
               </Route>
+
+              {/* Any address the app does not have goes to the login page, which sends people already logged in on to the dashboard */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </ToastProvider>
         </AuthProvider>
