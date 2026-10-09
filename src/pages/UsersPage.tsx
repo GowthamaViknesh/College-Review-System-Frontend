@@ -135,7 +135,7 @@ export function UsersPage() {
   })
 
   const setUserRole = useMutation({
-    mutationFn: ({ user, roleName }: { user: User; roleName: string }) => usersApi.setRole(user._id, roleName),
+    mutationFn: ({ user, roleName }: { user: User; roleName: string }) => usersApi.setRole(user.userId, roleName),
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success(`${displayName(data.user.username)} is now ${data.user.role?.name}`)
@@ -144,7 +144,7 @@ export function UsersPage() {
   })
 
   const remove = useMutation({
-    mutationFn: (user: User) => usersApi.remove(user._id),
+    mutationFn: (user: User) => usersApi.remove(user.userId),
     onSuccess: (_result, user) => {
       // Their reviews go with them, which changes college averages
       queryClient.invalidateQueries()
@@ -225,9 +225,9 @@ export function UsersPage() {
                   </thead>
                   <tbody>
                     {list.map((user) => {
-                      const isMe = user._id === me?._id
+                      const isMe = user.userId === me?.userId
                       return (
-                        <tr key={user._id} className="border-t border-zinc-200/80">
+                        <tr key={user.userId} className="border-t border-zinc-200/80">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <Avatar name={user.username} src={user.avatar} />

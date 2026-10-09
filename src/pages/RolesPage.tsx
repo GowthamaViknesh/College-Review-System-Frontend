@@ -54,7 +54,7 @@ function RoleDrawer({ role, permissions, onClose }: { role?: Role; permissions: 
   }
 
   const mutation = useMutation({
-    mutationFn: (values: RoleValues) => (role ? rolesApi.update(role._id, values) : rolesApi.create(values)),
+    mutationFn: (values: RoleValues) => (role ? rolesApi.update(role.roleId, values) : rolesApi.create(values)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
       // If it is the role of the person editing, what they may do has just changed
@@ -156,7 +156,7 @@ export function RolesPage() {
   const permissions = useQuery({ queryKey: ['permissions'], queryFn: () => rolesApi.permissions().then((result) => result.data.permissions), staleTime: Infinity })
 
   const remove = useMutation({
-    mutationFn: (role: Role) => rolesApi.remove(role._id),
+    mutationFn: (role: Role) => rolesApi.remove(role.roleId),
     onSuccess: (_result, role) => {
       queryClient.invalidateQueries({ queryKey: ['roles'] })
       toast.success(`Role ${role.name} deleted`)
@@ -212,7 +212,7 @@ export function RolesPage() {
               {roles.data.map((role) => {
                 const locked = role.name === LOCKED_ROLE
                 return (
-                  <tr key={role._id} className="border-t border-zinc-200/80 align-top">
+                  <tr key={role.roleId} className="border-t border-zinc-200/80 align-top">
                     <td className="px-4 py-4">
                       <p className="text-base leading-tight font-medium capitalize">{role.name}</p>
                       <p className="mt-0.5 text-xs text-zinc-600">{role.description || 'No description'}</p>

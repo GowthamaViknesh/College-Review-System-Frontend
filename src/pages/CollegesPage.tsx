@@ -74,7 +74,7 @@ export function CollegesPage() {
   })
 
   const remove = useMutation({
-    mutationFn: (college: College) => collegesApi.remove(college._id),
+    mutationFn: (college: College) => collegesApi.remove(college.collegeId),
     onSuccess: (_result, college) => {
       queryClient.invalidateQueries({ queryKey: ['colleges'] })
       queryClient.invalidateQueries({ queryKey: ['reviews'] })
@@ -156,7 +156,7 @@ export function CollegesPage() {
           <ul className={`space-y-2.5 transition-opacity ${query.isPlaceholderData ? 'opacity-60' : ''}`}>
             {colleges.map((college) => (
               <CollegeRow
-                key={college._id}
+                key={college.collegeId}
                 college={college}
                 actions={
                   <>

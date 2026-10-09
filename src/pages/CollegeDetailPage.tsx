@@ -50,8 +50,8 @@ export function CollegeDetailPage() {
   // Each person can review a college once, so look up whether this user already has
   const canReview = can('review:create')
   const mine = useQuery({
-    queryKey: ['reviews', 'mine', id, user?._id],
-    queryFn: () => reviewsApi.list({ college: id, user: user?._id, limit: 1 }).then((result) => result.data.reviews[0] ?? null),
+    queryKey: ['reviews', 'mine', id, user?.userId],
+    queryFn: () => reviewsApi.list({ college: id, user: user?.userId, limit: 1 }).then((result) => result.data.reviews[0] ?? null),
     enabled: college.isSuccess && canReview && Boolean(user),
   })
 
@@ -165,7 +165,7 @@ export function CollegeDetailPage() {
               <>
                 <ul className={`space-y-3 transition-opacity ${reviews.isPlaceholderData ? 'opacity-60' : ''}`}>
                   {reviewList.map((review) => (
-                    <ReviewCard key={review._id} review={review} />
+                    <ReviewCard key={review.reviewId} review={review} />
                   ))}
                 </ul>
                 <Pagination meta={reviews.data?.meta} onPage={setPage} />

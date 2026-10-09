@@ -121,7 +121,7 @@ export interface ApiResult<T> {
 
 // Logging in, registering, logging out and resetting a forgotten password do not depend on an existing
 // login, so a 401 from them (a wrong password, say) is an answer to show, not a reason to renew anything
-const NO_SESSION = ['/auth/login', '/auth/register', '/auth/logout', '/auth/forgot-password', '/auth/reset-password']
+const NO_SESSION = ['/auth/login', '/auth/register', '/auth/logout', '/auth/forgot-password', '/auth/verify-reset-code', '/auth/reset-password']
 
 const SESSION_ENDED = 'Your session has ended. Please log in again.'
 

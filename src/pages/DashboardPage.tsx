@@ -54,7 +54,7 @@ function Featured({ colleges }: { colleges: College[] }) {
           </p>
         </div>
         <RatingRing rating={college.averageRating} size={48} />
-        <Link to={`/colleges/${college._id}`} className="inline-flex h-10 items-center rounded-xl bg-ink px-6 text-xs font-semibold text-white transition-colors hover:bg-zinc-800">
+        <Link to={`/colleges/${college.collegeId}`} className="inline-flex h-10 items-center rounded-xl bg-ink px-6 text-xs font-semibold text-white transition-colors hover:bg-zinc-800">
           View
         </Link>
       </div>
@@ -191,14 +191,14 @@ function LatestReviews() {
       </h2>
       <ul className="mt-3 space-y-2.5">
         {latest.data.map((review) => (
-          <li key={review._id} className="flex gap-3 rounded-3xl bg-panel p-4">
+          <li key={review.reviewId} className="flex gap-3 rounded-3xl bg-panel p-4">
             <Avatar name={review.user?.username ?? '?'} src={review.user?.avatar} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm">
                 <span className="font-medium">{review.user ? displayName(review.user.username) : 'Deleted user'}</span>
                 <span className="text-zinc-500"> on </span>
                 {review.college ? (
-                  <Link to={`/colleges/${review.college._id}`} className="font-medium underline-offset-4 hover:underline">
+                  <Link to={`/colleges/${review.college.collegeId}`} className="font-medium underline-offset-4 hover:underline">
                     {review.college.name}
                   </Link>
                 ) : (
@@ -271,7 +271,7 @@ export function DashboardPage() {
               <>
                 <ul className="space-y-2.5">
                   {list.data.data.colleges.map((college) => (
-                    <CollegeRow key={college._id} college={college} />
+                    <CollegeRow key={college.collegeId} college={college} />
                   ))}
                 </ul>
                 {(list.data.meta?.total ?? 0) > 5 && (

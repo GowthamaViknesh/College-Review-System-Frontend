@@ -114,7 +114,7 @@ function Showcase() {
         {top.data && top.data.length > 0 && (
           <ul className="mt-6 grid grid-cols-3 gap-3" aria-label="Top rated colleges">
             {top.data.map((college) => (
-              <li key={college._id} className="min-w-0 bg-white px-4 py-3">
+              <li key={college.collegeId} className="min-w-0 bg-white px-4 py-3">
                 <p className="truncate text-sm font-medium">{college.name}</p>
                 <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-zinc-600">
                   <Star className="size-4 fill-star text-star" aria-hidden />

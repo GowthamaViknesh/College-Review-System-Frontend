@@ -28,7 +28,9 @@ export const authApi = {
   logout: (refreshToken: string) => request<void>('/auth/logout', { method: 'POST', body: { refreshToken } }),
   // Emails a reset code if the address has an account. The answer is the same either way.
   forgotPassword: (email: string) => request<{ message: string }>('/auth/forgot-password', { method: 'POST', body: { email } }),
-  resetPassword: (body: { email: string; code: string; newPassword: string }) => request<void>('/auth/reset-password', { method: 'POST', body }),
+  // Checks the emailed code. A correct one is exchanged for a one-time token that resetPassword needs.
+  verifyResetCode: (body: { email: string; code: string }) => request<{ resetToken: string; expiresInMinutes: number }>('/auth/verify-reset-code', { method: 'POST', body }),
+  resetPassword: (body: { resetToken: string; newPassword: string }) => request<void>('/auth/reset-password', { method: 'POST', body }),
   me: () => request<Me>('/auth/me'),
   updateProfile: (body: { username?: string; email?: string }) => request<{ user: User }>('/auth/me', { method: 'PATCH', body }),
   // Changing the password ends every login, this one included, so the server sends a new pair of tokens back

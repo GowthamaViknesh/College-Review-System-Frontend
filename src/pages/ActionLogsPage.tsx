@@ -111,7 +111,7 @@ export function ActionLogsPage() {
               </thead>
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log._id} className="border-t border-zinc-200/80 align-top">
+                  <tr key={log.logId} className="border-t border-zinc-200/80 align-top">
                     <td className="px-4 py-3 whitespace-nowrap text-zinc-600">{formatDateTime(log.createdAt)}</td>
                     <td className="px-4 py-3 font-semibold">{log.actor.username ? displayName(log.actor.username) : <span className="font-normal text-zinc-500">Not logged in</span>}</td>
                     <td className="px-4 py-3">

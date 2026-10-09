@@ -13,12 +13,12 @@ export interface FieldError {
 }
 
 export interface RoleRef {
-  _id: string
+  roleId: string
   name: string
 }
 
 export interface User {
-  _id: string
+  userId: string
   username: string
   email: string
   role: RoleRef | null
@@ -33,7 +33,7 @@ export interface Me {
 }
 
 export interface Role {
-  _id: string
+  roleId: string
   name: string
   description: string
   permissions: string[]
@@ -48,7 +48,7 @@ export interface Permission {
 }
 
 export interface College {
-  _id: string
+  collegeId: string
   name: string
   city: string
   state: string
@@ -62,9 +62,9 @@ export interface College {
 }
 
 export interface Review {
-  _id: string
-  college: { _id: string; name: string } | null
-  user: { _id: string; username: string; avatar: string | null } | null
+  reviewId: string
+  college: { collegeId: string; name: string } | null
+  user: { userId: string; username: string; avatar: string | null } | null
   rating: number
   comment: string
   createdAt: string
@@ -74,7 +74,7 @@ export interface Review {
 export type Outcome = 'success' | 'denied' | 'failed'
 
 export interface ActionLog {
-  _id: string
+  logId: string
   actor: { id: string | null; username: string | null }
   action: string
   outcome: Outcome

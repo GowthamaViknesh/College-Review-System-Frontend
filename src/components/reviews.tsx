@@ -37,7 +37,7 @@ export function ReviewForm({ collegeId, review, onDone, onCancel }: { collegeId:
   const errors = form.formState.errors
 
   const mutation = useMutation({
-    mutationFn: (values: ReviewValues) => (review ? reviewsApi.update(review._id, values) : reviewsApi.create({ ...values, college: collegeId })),
+    mutationFn: (values: ReviewValues) => (review ? reviewsApi.update(review.reviewId, values) : reviewsApi.create({ ...values, college: collegeId })),
     onSuccess: () => {
       refreshAfterReviewChange(queryClient)
       toast.success(review ? 'Review updated' : 'Thanks for your review')
@@ -88,14 +88,14 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
   const [editing, setEditing] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const isMine = Boolean(user && review.user?._id === user._id)
+  const isMine = Boolean(user && review.user?.userId === user.userId)
   // Only the author can edit. The author can always delete; so can anyone with the moderation permission.
   const canEdit = isMine && can('review:create')
   const canDelete = isMine || can('review:delete:any')
   const author = review.user ? displayName(review.user.username) : 'Deleted user'
 
   const remove = useMutation({
-    mutationFn: () => reviewsApi.remove(review._id),
+    mutationFn: () => reviewsApi.remove(review.reviewId),
     onSuccess: () => {
       refreshAfterReviewChange(queryClient)
       toast.success('Review deleted')
@@ -109,7 +109,7 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
         <Avatar name={showCollege ? (review.college?.name ?? '?') : author} src={showCollege ? null : review.user?.avatar} />
         <div className="min-w-0 flex-1">
           {showCollege && review.college ? (
-            <Link to={`/colleges/${review.college._id}`} className="font-display text-base leading-tight font-medium underline-offset-4 hover:underline">
+            <Link to={`/colleges/${review.college.collegeId}`} className="font-display text-base leading-tight font-medium underline-offset-4 hover:underline">
               {review.college.name}
             </Link>
           ) : (
@@ -145,7 +145,7 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
 
       {editing && review.college && (
         <Modal title="Edit your review" onClose={() => setEditing(false)}>
-          <ReviewForm collegeId={review.college._id} review={review} onDone={() => setEditing(false)} onCancel={() => setEditing(false)} />
+          <ReviewForm collegeId={review.college.collegeId} review={review} onDone={() => setEditing(false)} onCancel={() => setEditing(false)} />
         </Modal>
       )}
       {confirming && (

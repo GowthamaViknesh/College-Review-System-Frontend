@@ -16,8 +16,8 @@ export function MyReviewsPage() {
   const [page, setPage] = useState(1)
 
   const query = useQuery({
-    queryKey: ['reviews', 'by-user', user?._id, page],
-    queryFn: () => reviewsApi.list({ user: user?._id, page, limit: PAGE_SIZE }),
+    queryKey: ['reviews', 'by-user', user?.userId, page],
+    queryFn: () => reviewsApi.list({ user: user?.userId, page, limit: PAGE_SIZE }),
     placeholderData: keepPreviousData,
     enabled: Boolean(user),
   })
@@ -43,7 +43,7 @@ export function MyReviewsPage() {
         <>
           <ul className={`grid gap-3 lg:grid-cols-2 ${query.isPlaceholderData ? 'opacity-60' : ''}`}>
             {reviews.map((review) => (
-              <ReviewCard key={review._id} review={review} showCollege />
+              <ReviewCard key={review.reviewId} review={review} showCollege />
             ))}
           </ul>
           <Pagination meta={query.data?.meta} onPage={setPage} />

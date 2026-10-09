@@ -51,7 +51,7 @@ export function CollegeRow({ college, actions }: { college: College; actions?: R
       <div className="flex items-center gap-1">
         {actions}
         <Link
-          to={`/colleges/${college._id}`}
+          to={`/colleges/${college.collegeId}`}
           className="inline-flex h-9 items-center rounded-xl bg-ink px-4 text-xs font-semibold whitespace-nowrap text-white transition-colors hover:bg-zinc-800"
           aria-label={`View ${college.name}, ${plural(college.reviewCount, 'review')}`}
         >
@@ -95,8 +95,8 @@ export function CollegeFormModal({ college, onClose }: { college?: College; onCl
 
   const mutation = useMutation({
     mutationFn: async (values: CollegeValues) => {
-      const { data } = await (college ? collegesApi.update(college._id, values) : collegesApi.create(values))
-      const id = data.college._id
+      const { data } = await (college ? collegesApi.update(college.collegeId, values) : collegesApi.create(values))
+      const id = data.college.collegeId
 
       // The details are saved by this point. A problem with the picture is reported on its own,
       // so it does not look as if nothing was saved.
