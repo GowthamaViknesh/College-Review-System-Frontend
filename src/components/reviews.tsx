@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { reviewsApi } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { errorMessage } from '../lib/api'
-import { formatDate } from '../lib/format'
+import { displayName, formatDate } from '../lib/format'
 import { applyServerErrors } from '../lib/forms'
 import type { Review } from '../lib/types'
 import { useToast } from './Toast'
@@ -92,7 +92,7 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
   // Only the author can edit. The author can always delete; so can anyone with the moderation permission.
   const canEdit = isMine && can('review:create')
   const canDelete = isMine || can('review:delete:any')
-  const author = review.user?.username ?? 'Deleted user'
+  const author = review.user ? displayName(review.user.username) : 'Deleted user'
 
   const remove = useMutation({
     mutationFn: () => reviewsApi.remove(review._id),

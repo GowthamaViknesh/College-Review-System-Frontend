@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Lock, Pencil, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { rolesApi } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { PageHeader } from '../components/Layout'
 import { useToast } from '../components/Toast'
-import { Badge, Button, Card, ConfirmDialog, EmptyState, ErrorNote, Field, Input, Modal, Spinner } from '../components/ui'
+import { Badge, Button, Card, ConfirmDialog, Drawer, EmptyState, ErrorNote, Field, Input, Spinner } from '../components/ui'
 import { errorMessage } from '../lib/api'
-import { plural } from '../lib/format'
+import { formatDate, plural } from '../lib/format'
 import { applyServerErrors } from '../lib/forms'
 import type { Permission, Role } from '../lib/types'
 
@@ -29,9 +29,11 @@ const roleSchema = z.object({
 
 type RoleValues = z.infer<typeof roleSchema>
 
-function RoleFormModal({ role, permissions, onClose }: { role?: Role; permissions: Permission[]; onClose: () => void }) {
+// Creates a role, or edits the one passed in, in a panel that slides in from the right
+function RoleDrawer({ role, permissions, onClose }: { role?: Role; permissions: Permission[]; onClose: () => void }) {
   const queryClient = useQueryClient()
   const toast = useToast()
+  const formId = useId()
   const [formError, setFormError] = useState<string | null>(null)
   const form = useForm<RoleValues>({
     resolver: zodResolver(roleSchema),
@@ -43,6 +45,13 @@ function RoleFormModal({ role, permissions, onClose }: { role?: Role; permission
   // Group the catalogue by what each permission is about: user, role, college, review, log
   const groups = new Map<string, Permission[]>()
   for (const permission of permissions) groups.set(permission.resource, [...(groups.get(permission.resource) ?? []), permission])
+
+  // Tick or untick every permission in one group
+  function toggleGroup(items: Permission[], select: boolean) {
+    const names = items.map((item) => item.name)
+    const rest = chosen.filter((name) => !names.includes(name))
+    form.setValue('permissions', select ? [...rest, ...names] : rest, { shouldDirty: true })
+  }
 
   const mutation = useMutation({
     mutationFn: (values: RoleValues) => (role ? rolesApi.update(role._id, values) : rolesApi.create(values)),
@@ -62,60 +71,77 @@ function RoleFormModal({ role, permissions, onClose }: { role?: Role; permission
   })
 
   return (
-    <Modal title={role ? `Edit ${role.name}` : 'Create a role'} onClose={onClose} wide>
+    <Drawer
+      title={role ? `Edit ${role.name}` : 'Create a role'}
+      subtitle={role ? 'Changes apply to everyone with this role on their next request.' : 'Name the role, then choose what people with it may do.'}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form={formId} loading={mutation.isPending}>
+            {role ? 'Save changes' : 'Create role'}
+          </Button>
+        </>
+      }
+    >
       <form
+        id={formId}
         noValidate
-        className="space-y-5"
+        className="space-y-6"
         onSubmit={form.handleSubmit((values) => {
           setFormError(null)
           mutation.mutate(values)
         })}
       >
         {formError && <ErrorNote>{formError}</ErrorNote>}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Name" error={errors.name?.message} hint="For example: moderator">
-            {({ id, describedBy }) => <Input id={id} autoComplete="off" aria-describedby={describedBy} aria-invalid={Boolean(errors.name)} {...form.register('name')} />}
-          </Field>
-          <Field label="Description" error={errors.description?.message} hint="Optional">
-            {({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} aria-invalid={Boolean(errors.description)} {...form.register('description')} />}
-          </Field>
-        </div>
+        <Field label="Name" error={errors.name?.message} hint="For example: moderator">
+          {({ id, describedBy }) => <Input id={id} autoComplete="off" aria-describedby={describedBy} aria-invalid={Boolean(errors.name)} {...form.register('name')} />}
+        </Field>
+        <Field label="Description" error={errors.description?.message} hint="Optional. Shown in the roles list.">
+          {({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} aria-invalid={Boolean(errors.description)} {...form.register('description')} />}
+        </Field>
 
         <fieldset>
-          <legend className="mb-1 text-sm font-semibold">
-            Permissions <span className="font-normal text-zinc-500">({chosen.length} selected)</span>
+          <legend className="text-sm font-semibold">
+            Permissions{' '}
+            <span className="font-normal text-zinc-500">
+              ({chosen.length} of {permissions.length} selected)
+            </span>
           </legend>
-          {errors.permissions && <p className="mb-2 text-xs font-medium text-red-600">{errors.permissions.message}</p>}
-          <div className="max-h-[42vh] space-y-4 overflow-y-auto rounded-2xl bg-panel p-4">
-            {[...groups].map(([resource, items]) => (
-              <div key={resource}>
-                <p className="mb-1.5 font-display text-sm font-medium capitalize">{resource}</p>
-                <div className="grid gap-1.5 sm:grid-cols-2">
-                  {items.map((permission) => (
-                    <label key={permission.name} className="flex cursor-pointer items-start gap-2.5 rounded-xl bg-white p-3 ring-1 ring-zinc-200 has-checked:ring-2 has-checked:ring-ink">
-                      <input type="checkbox" value={permission.name} className="mt-0.5 size-4 shrink-0 accent-ink" {...form.register('permissions')} />
-                      <span className="min-w-0">
-                        <span className="block font-mono text-xs font-semibold">{permission.name}</span>
-                        <span className="block text-xs text-zinc-500">{permission.description}</span>
-                      </span>
-                    </label>
-                  ))}
+          {errors.permissions && <p className="mt-1 text-xs font-medium text-red-600">{errors.permissions.message}</p>}
+
+          <div className="mt-3 space-y-5">
+            {[...groups].map(([resource, items]) => {
+              const allChosen = items.every((item) => chosen.includes(item.name))
+              return (
+                <div key={resource}>
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-medium capitalize">{resource}</p>
+                    <button type="button" onClick={() => toggleGroup(items, !allChosen)} className="cursor-pointer rounded-md text-xs font-medium text-zinc-600 underline underline-offset-4 hover:text-ink">
+                      {allChosen ? 'Clear' : 'Select all'}
+                      <span className="sr-only"> {resource} permissions</span>
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {items.map((permission) => (
+                      <label key={permission.name} className="flex cursor-pointer items-start gap-3 rounded-xl bg-panel p-3 ring-1 ring-transparent has-checked:bg-white has-checked:ring-2 has-checked:ring-ink">
+                        <input type="checkbox" value={permission.name} className="mt-0.5 size-4 shrink-0 accent-ink" {...form.register('permissions')} />
+                        <span className="min-w-0">
+                          <span className="block font-mono text-xs font-semibold">{permission.name}</span>
+                          <span className="block text-xs text-zinc-600">{permission.description}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </fieldset>
-
-        <div className="flex justify-end gap-3">
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" loading={mutation.isPending}>
-            {role ? 'Save changes' : 'Create role'}
-          </Button>
-        </div>
       </form>
-    </Modal>
+    </Drawer>
   )
 }
 
@@ -138,11 +164,13 @@ export function RolesPage() {
     },
   })
 
+  const canChange = can('role:update') || can('role:delete')
+
   return (
     <>
       <PageHeader
         title="Roles"
-        subtitle="A role is a named set of permissions. Changes apply on each user's next request."
+        subtitle={roles.data ? `${plural(roles.data.length, 'role')}. Changes apply on each user's next request.` : 'A role is a named set of permissions.'}
         actions={
           can('role:create') && (
             <Button onClick={() => setEditing('new')} disabled={!permissions.data}>
@@ -160,56 +188,85 @@ export function RolesPage() {
       ) : roles.data.length === 0 ? (
         <EmptyState title="No roles yet" />
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          {roles.data.map((role) => {
-            const locked = role.name === LOCKED_ROLE
-            return (
-              <li key={role._id}>
-                <Card className="flex h-full flex-col">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="truncate text-xl leading-tight font-medium capitalize">{role.name}</h2>
-                      <p className="mt-0.5 text-sm text-zinc-600">{role.description || 'No description'}</p>
-                    </div>
-                    {locked ? (
-                      <Badge tone="dark">
-                        <Lock className="size-3" aria-hidden />
-                        Locked
-                      </Badge>
-                    ) : (
-                      <div className="flex shrink-0 gap-1">
-                        {can('role:update') && (
-                          <Button variant="ghost" size="icon" onClick={() => setEditing(role)} disabled={!permissions.data} aria-label={`Edit ${role.name}`}>
-                            <Pencil className="size-4" aria-hidden />
-                          </Button>
+        <Card className="relative overflow-x-auto p-2">
+          <table className="w-full min-w-[46rem] text-left text-sm">
+            <thead>
+              <tr className="text-xs text-zinc-500">
+                <th scope="col" className="w-64 px-4 py-3 font-semibold">
+                  Role
+                </th>
+                <th scope="col" className="px-4 py-3 font-semibold">
+                  Permissions
+                </th>
+                <th scope="col" className="w-32 px-4 py-3 font-semibold">
+                  Last changed
+                </th>
+                {canChange && (
+                  <th scope="col" className="w-28 px-4 py-3">
+                    <span className="sr-only">Actions</span>
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {roles.data.map((role) => {
+                const locked = role.name === LOCKED_ROLE
+                return (
+                  <tr key={role._id} className="border-t border-zinc-200/80 align-top">
+                    <td className="px-4 py-4">
+                      <p className="text-base leading-tight font-medium capitalize">{role.name}</p>
+                      <p className="mt-0.5 text-xs text-zinc-600">{role.description || 'No description'}</p>
+                    </td>
+                    <td className="px-4 py-4">
+                      <p className="mb-2 text-xs font-semibold text-zinc-500">{plural(role.permissions.length, 'permission')}</p>
+                      {role.permissions.length === 0 ? (
+                        <p className="text-sm text-zinc-500">This role cannot do anything yet.</p>
+                      ) : (
+                        <ul className="flex flex-wrap gap-1.5">
+                          {role.permissions.map((permission) => (
+                            <li key={permission} className="rounded-lg bg-white px-2 py-1 font-mono text-[11px] font-medium ring-1 ring-zinc-200">
+                              {permission}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-zinc-600">{formatDate(role.updatedAt)}</td>
+                    {canChange && (
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {locked ? (
+                          // The admin role always has every permission, so administrators can never be locked out
+                          <span title="Always has every permission, so administrators can never be locked out.">
+                            <Badge tone="dark">
+                              <Lock className="size-3" aria-hidden />
+                              Locked
+                            </Badge>
+                          </span>
+                        ) : (
+                          <>
+                            {can('role:update') && (
+                              <Button variant="ghost" size="icon" onClick={() => setEditing(role)} disabled={!permissions.data} aria-label={`Edit ${role.name}`}>
+                                <Pencil className="size-4" aria-hidden />
+                              </Button>
+                            )}
+                            {can('role:delete') && (
+                              <Button variant="ghost" size="icon" onClick={() => setDeleting(role)} aria-label={`Delete ${role.name}`}>
+                                <Trash2 className="size-4" aria-hidden />
+                              </Button>
+                            )}
+                          </>
                         )}
-                        {can('role:delete') && (
-                          <Button variant="ghost" size="icon" onClick={() => setDeleting(role)} aria-label={`Delete ${role.name}`}>
-                            <Trash2 className="size-4" aria-hidden />
-                          </Button>
-                        )}
-                      </div>
+                      </td>
                     )}
-                  </div>
-
-                  <p className="mt-4 mb-2 text-xs font-semibold text-zinc-500">{plural(role.permissions.length, 'permission')}</p>
-                  <ul className="flex flex-wrap gap-1.5">
-                    {role.permissions.map((permission) => (
-                      <li key={permission} className="rounded-lg bg-white px-2 py-1 font-mono text-[11px] font-medium ring-1 ring-zinc-200">
-                        {permission}
-                      </li>
-                    ))}
-                    {role.permissions.length === 0 && <li className="text-sm text-zinc-500">This role cannot do anything yet.</li>}
-                  </ul>
-                  {locked && <p className="mt-auto pt-4 text-xs text-zinc-500">Always has every permission, so administrators can never be locked out.</p>}
-                </Card>
-              </li>
-            )
-          })}
-        </ul>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </Card>
       )}
 
-      {editing && permissions.data && <RoleFormModal role={editing === 'new' ? undefined : editing} permissions={permissions.data} onClose={() => setEditing(null)} />}
+      {editing && permissions.data && <RoleDrawer role={editing === 'new' ? undefined : editing} permissions={permissions.data} onClose={() => setEditing(null)} />}
       {deleting && (
         <ConfirmDialog
           title={`Delete the ${deleting.name} role?`}

@@ -6,11 +6,13 @@ import { Bar, BarChart, CartesianGrid, LabelList, Line, LineChart, ResponsiveCon
 import { collegesApi, logsApi, reviewsApi, statsApi, type CollegeSort } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { CollegeMark, CollegeRow } from '../components/colleges'
-import { BookFigure, WavingFigure } from '../components/Illustration'
-import { UserBar } from '../components/Layout'
+import adminImage from '../assets/admin-cutout.webp'
+import studentImage from '../assets/student-cutout.webp'
+import { BookFigure } from '../components/Illustration'
+import { SearchBar } from '../components/Layout'
 import { Avatar, Card, EmptyState, ErrorNote, RatingRing, Spinner, Stars } from '../components/ui'
 import { errorMessage } from '../lib/api'
-import { cn, formatDate, plural, weekdayOf } from '../lib/format'
+import { cn, displayName, formatDate, plural, weekdayOf } from '../lib/format'
 import type { College, StatsOverview } from '../lib/types'
 
 const TABS: { label: string; sort: CollegeSort }[] = [
@@ -193,7 +195,7 @@ function LatestReviews() {
             <Avatar name={review.user?.username ?? '?'} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm">
-                <span className="font-medium">{review.user?.username ?? 'Deleted user'}</span>
+                <span className="font-medium">{review.user ? displayName(review.user.username) : 'Deleted user'}</span>
                 <span className="text-zinc-500"> on </span>
                 {review.college ? (
                   <Link to={`/colleges/${review.college._id}`} className="font-medium underline-offset-4 hover:underline">
@@ -217,7 +219,7 @@ function LatestReviews() {
 }
 
 export function DashboardPage() {
-  const { user, can } = useAuth()
+  const { user, can, isReviewer } = useAuth()
   const [tab, setTab] = useState<CollegeSort>('name')
 
   const stats = useQuery({ queryKey: ['stats'], queryFn: () => statsApi.overview().then((result) => result.data) })
@@ -232,15 +234,16 @@ export function DashboardPage() {
       {/* Left column: greeting, top colleges, the list */}
       <div className="min-w-0 space-y-6">
         <div className="xl:hidden">
-          <UserBar />
+          <SearchBar />
         </div>
 
-        <section className="relative flex min-h-36 items-center overflow-hidden rounded-3xl bg-panel px-7 py-6">
+        <section className="relative flex min-h-44 items-center overflow-hidden rounded-3xl bg-panel px-7 py-6">
           <div className="relative z-10">
-            <h1 className="text-4xl leading-none font-medium">Hello {user?.username}!</h1>
+            <h1 className="text-4xl leading-none font-medium">Hello {user ? displayName(user.username) : ''}!</h1>
             <p className="mt-2 text-sm text-zinc-600">It's good to see you again.</p>
           </div>
-          <WavingFigure className="absolute right-6 -bottom-1 hidden h-40 sm:block" />
+          {/* The picture depends on who is looking: one for students, another for the people who run things */}
+          <img src={isReviewer ? studentImage : adminImage} alt="" className="absolute right-4 bottom-0 hidden h-44 object-contain object-bottom sm:block" />
         </section>
 
         <Featured colleges={featured} />
@@ -285,7 +288,7 @@ export function DashboardPage() {
       {/* Right column: search and user, totals, the chart, the next step */}
       <div className="min-w-0 space-y-6">
         <div className="hidden xl:block">
-          <UserBar />
+          <SearchBar />
         </div>
 
         {stats.isPending ? (
@@ -297,7 +300,7 @@ export function DashboardPage() {
             <div className="grid grid-cols-2 gap-4">
               <StatTile value={stats.data.totals.colleges} label={stats.data.totals.colleges === 1 ? 'College listed' : 'Colleges listed'} />
               {/* Reviewers see their own count; people who run the system (they can read the log) see the total */}
-              {can('review:create') && !can('log:read') ? (
+              {isReviewer ? (
                 <StatTile value={stats.data.totals.myReviews} label={stats.data.totals.myReviews === 1 ? 'Review by you' : 'Reviews by you'} />
               ) : (
                 <StatTile value={stats.data.totals.reviews} label={stats.data.totals.reviews === 1 ? 'Review in total' : 'Reviews in total'} />

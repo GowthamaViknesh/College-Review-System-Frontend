@@ -16,6 +16,7 @@ const CollegeDetailPage = lazy(() => import('./pages/CollegeDetailPage').then((m
 const MyReviewsPage = lazy(() => import('./pages/MyReviewsPage').then((module) => ({ default: module.MyReviewsPage })))
 const UsersPage = lazy(() => import('./pages/UsersPage').then((module) => ({ default: module.UsersPage })))
 const RolesPage = lazy(() => import('./pages/RolesPage').then((module) => ({ default: module.RolesPage })))
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })))
 const ActionLogsPage = lazy(() => import('./pages/ActionLogsPage').then((module) => ({ default: module.ActionLogsPage })))
 
 const queryClient = new QueryClient({
@@ -52,6 +53,7 @@ export default function App() {
               {/* Everything below needs a logged-in user; AppLayout redirects to /login otherwise */}
               <Route element={<AppLayout />}>
                 <Route index element={<DashboardPage />} />
+                <Route path="profile" element={<ProfilePage />} />
                 <Route path="colleges" element={<CollegesPage />} />
                 <Route path="colleges/:id" element={<CollegeDetailPage />} />
                 <Route

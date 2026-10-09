@@ -12,6 +12,10 @@ export const formatRating = (rating: number | null) => (rating === null ? '–' 
 
 export const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`
 
+// How a person's name is shown anywhere in the app: first letter capital, the rest as they typed it.
+// Display only. The stored username is unchanged, so logging in and editing it use the real value.
+export const displayName = (name: string) => name.charAt(0).toUpperCase() + name.slice(1)
+
 export const initials = (name: string) => name.slice(0, 2).toUpperCase()
 
 // Joins class names, skipping anything falsy

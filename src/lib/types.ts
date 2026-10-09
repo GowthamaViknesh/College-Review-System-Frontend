@@ -36,6 +36,7 @@ export interface Role {
   description: string
   permissions: string[]
   createdAt: string
+  updatedAt: string
 }
 
 export interface Permission {

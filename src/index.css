@@ -14,6 +14,21 @@
 
   --shadow-soft: 0 10px 30px -12px rgb(12 12 13 / 0.18);
   --shadow-float: 0 24px 60px -20px rgb(12 12 13 / 0.35);
+
+  /* A panel sliding in from the right edge, and the dimmed page behind it fading in */
+  --animate-drawer-in: drawer-in 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fade-in 0.2s ease-out;
+
+  @keyframes drawer-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
 }
 
 html,

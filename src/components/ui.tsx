@@ -258,6 +258,44 @@ export function Modal({ title, onClose, children, wide = false }: { title: strin
   )
 }
 
+// A panel that slides in from the right edge, for a form that needs more room than a dialog.
+// The body scrolls; the footer (usually Cancel and Save) stays pinned at the bottom.
+export function Drawer({ title, subtitle, onClose, children, footer }: { title: string; subtitle?: string; onClose: () => void; children: ReactNode; footer: ReactNode }) {
+  const titleId = useId()
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKey)
+    // Stop the page behind from scrolling while the drawer is open
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previous
+    }
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-ink/50 backdrop-blur-sm motion-safe:animate-fade-in" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="flex h-full w-full max-w-xl flex-col bg-white shadow-float motion-safe:animate-drawer-in">
+        <div className="flex items-start justify-between gap-4 border-b border-zinc-200 px-6 py-5 sm:px-8">
+          <div className="min-w-0">
+            <h2 id={titleId} className="text-2xl leading-tight font-medium">
+              {title}
+            </h2>
+            {subtitle && <p className="mt-1 text-sm text-zinc-600">{subtitle}</p>}
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
+            <X className="size-5" aria-hidden />
+          </Button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-8">{children}</div>
+        <div className="flex justify-end gap-3 border-t border-zinc-200 px-6 py-4 sm:px-8">{footer}</div>
+      </div>
+    </div>
+  )
+}
+
 // A yes/no question before something that cannot be undone
 export function ConfirmDialog({
   title,

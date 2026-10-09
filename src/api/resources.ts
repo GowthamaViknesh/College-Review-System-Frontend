@@ -12,9 +12,12 @@ export const authApi = {
   login: (body: Credentials) => request<{ user: User; token: string }>('/auth/login', { method: 'POST', body }),
   register: (body: Credentials & { username: string }) => request<{ user: User; token: string }>('/auth/register', { method: 'POST', body }),
   me: () => request<Me>('/auth/me'),
+  updateProfile: (body: { username?: string; email?: string }) => request<{ user: User }>('/auth/me', { method: 'PATCH', body }),
+  changePassword: (body: { currentPassword: string; newPassword: string }) => request<void>('/auth/me/password', { method: 'PATCH', body }),
 }
 
 export type CollegeSort = 'newest' | 'name' | 'rating' | 'reviews'
+export type SortOrder = 'asc' | 'desc'
 
 export interface CollegeQuery {
   page?: number
@@ -22,6 +25,7 @@ export interface CollegeQuery {
   search?: string
   minRating?: number | ''
   sort?: CollegeSort
+  order?: SortOrder
 }
 
 export interface CollegeInput {

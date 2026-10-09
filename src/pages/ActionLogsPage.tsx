@@ -4,7 +4,7 @@ import { logsApi } from '../api/resources'
 import { PageHeader } from '../components/Layout'
 import { Badge, Card, EmptyState, ErrorNote, Pagination, Select, Spinner } from '../components/ui'
 import { errorMessage } from '../lib/api'
-import { formatDateTime, plural } from '../lib/format'
+import { displayName, formatDateTime, plural } from '../lib/format'
 import type { ActionLog, Outcome } from '../lib/types'
 
 const PAGE_SIZE = 12
@@ -13,6 +13,8 @@ const PAGE_SIZE = 12
 const ACTIONS = [
   'auth:login',
   'auth:register',
+  'auth:password_change',
+  'profile:update',
   'user:create',
   'user:delete',
   'role:assign',
@@ -93,7 +95,7 @@ export function ActionLogsPage() {
         <EmptyState title="Nothing recorded">{outcome || action ? 'No entries match these filters.' : 'Entries appear here as people use the system.'}</EmptyState>
       ) : (
         <>
-          <Card className={`overflow-x-auto p-2 transition-opacity ${query.isPlaceholderData ? 'opacity-60' : ''}`}>
+          <Card className={`relative overflow-x-auto p-2 transition-opacity ${query.isPlaceholderData ? 'opacity-60' : ''}`}>
             <table className="w-full min-w-[52rem] text-left text-sm">
               <thead>
                 <tr className="text-xs text-zinc-500">
@@ -108,7 +110,7 @@ export function ActionLogsPage() {
                 {logs.map((log) => (
                   <tr key={log._id} className="border-t border-zinc-200/80 align-top">
                     <td className="px-4 py-3 whitespace-nowrap text-zinc-600">{formatDateTime(log.createdAt)}</td>
-                    <td className="px-4 py-3 font-semibold">{log.actor.username ?? <span className="font-normal text-zinc-500">Not logged in</span>}</td>
+                    <td className="px-4 py-3 font-semibold">{log.actor.username ? displayName(log.actor.username) : <span className="font-normal text-zinc-500">Not logged in</span>}</td>
                     <td className="px-4 py-3">
                       <span className="font-mono text-xs font-semibold">{log.action}</span>
                       <span className="block text-xs text-zinc-500">

@@ -10,7 +10,7 @@ import { PageHeader } from '../components/Layout'
 import { useToast } from '../components/Toast'
 import { Avatar, Badge, Button, Card, ConfirmDialog, EmptyState, ErrorNote, Field, Input, Modal, Pagination, Select, Spinner } from '../components/ui'
 import { errorMessage } from '../lib/api'
-import { formatDate, plural } from '../lib/format'
+import { displayName, formatDate, plural } from '../lib/format'
 import { applyServerErrors } from '../lib/forms'
 import type { User } from '../lib/types'
 
@@ -42,7 +42,7 @@ function CreateUserModal({ roleNames, onClose }: { roleNames: string[]; onClose:
     mutationFn: usersApi.create,
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      toast.success(`Account created for ${data.user.username}`)
+      toast.success(`Account created for ${displayName(data.user.username)}`)
       onClose()
     },
     onError: (error) => setFormError(applyServerErrors(error, form.setError, ['username', 'email', 'password', 'role'])),
@@ -138,7 +138,7 @@ export function UsersPage() {
     mutationFn: ({ user, roleName }: { user: User; roleName: string }) => usersApi.setRole(user._id, roleName),
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      toast.success(`${data.user.username} is now ${data.user.role?.name}`)
+      toast.success(`${displayName(data.user.username)} is now ${data.user.role?.name}`)
     },
     onError: (error) => toast.error(error),
   })
@@ -148,7 +148,7 @@ export function UsersPage() {
     onSuccess: (_result, user) => {
       // Their reviews go with them, which changes college averages
       queryClient.invalidateQueries()
-      toast.success(`${user.username} deleted`)
+      toast.success(`${displayName(user.username)} deleted`)
       setDeleting(null)
     },
   })
@@ -205,7 +205,7 @@ export function UsersPage() {
             <EmptyState title="No users match">Try a different search or role.</EmptyState>
           ) : (
             <>
-              <Card className={`overflow-x-auto p-2 transition-opacity ${users.isPlaceholderData ? 'opacity-60' : ''}`}>
+              <Card className={`relative overflow-x-auto p-2 transition-opacity ${users.isPlaceholderData ? 'opacity-60' : ''}`}>
                 <table className="w-full min-w-[40rem] text-left text-sm">
                   <thead>
                     <tr className="text-xs text-zinc-500">
@@ -233,7 +233,7 @@ export function UsersPage() {
                               <Avatar name={user.username} />
                               <div className="min-w-0">
                                 <p className="truncate font-semibold">
-                                  {user.username}
+                                  {displayName(user.username)}
                                   {isMe && <span className="ml-2 text-xs font-medium text-zinc-500">(you)</span>}
                                 </p>
                                 <p className="truncate text-xs text-zinc-500">{user.email}</p>
@@ -247,7 +247,7 @@ export function UsersPage() {
                                 value={user.role?.name ?? ''}
                                 onChange={(event) => setUserRole.mutate({ user, roleName: event.target.value })}
                                 disabled={setUserRole.isPending}
-                                aria-label={`Role of ${user.username}`}
+                                aria-label={`Role of ${displayName(user.username)}`}
                                 className="!h-9 !w-36 capitalize"
                               >
                                 {!user.role && <option value="">No role</option>}
@@ -266,7 +266,7 @@ export function UsersPage() {
                           <td className="px-4 py-3 whitespace-nowrap text-zinc-600">{formatDate(user.createdAt)}</td>
                           <td className="px-4 py-3 text-right">
                             {can('user:delete') && !isMe && (
-                              <Button variant="ghost" size="icon" onClick={() => setDeleting(user)} aria-label={`Delete ${user.username}`}>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleting(user)} aria-label={`Delete ${displayName(user.username)}`}>
                                 <Trash2 className="size-4" aria-hidden />
                               </Button>
                             )}
@@ -286,7 +286,7 @@ export function UsersPage() {
       {creating && <CreateUserModal roleNames={roleNames} onClose={() => setCreating(false)} />}
       {deleting && (
         <ConfirmDialog
-          title={`Delete ${deleting.username}?`}
+          title={`Delete ${displayName(deleting.username)}?`}
           confirmLabel="Delete user"
           loading={remove.isPending}
           error={remove.error ? errorMessage(remove.error) : null}

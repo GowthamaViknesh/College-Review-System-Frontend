@@ -27,13 +27,6 @@ const registerSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>
 type RegisterValues = z.infer<typeof registerSchema>
 
-// Accounts created by `npm run seed` and `npm run seed:demo` in the backend.
-// Offered as one-click logins while developing; never included in a production build.
-const DEMO_ACCOUNTS = [
-  { label: 'Admin', initial: 'A', email: 'admin@example.com', password: 'Password@123' },
-  { label: 'Student', initial: 'S', email: 'arun@example.com', password: 'Password@123' },
-]
-
 interface PillInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
@@ -134,12 +127,7 @@ function Showcase() {
           </ul>
         )}
 
-        <p className="mt-5 text-xs text-zinc-500">
-          Illustration by{' '}
-          <a href="https://storyset.com" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">
-            Storyset
-          </a>
-        </p>
+        <p className="mt-5 text-xs text-zinc-500">Created by Gowtham</p>
       </div>
     </div>
   )
@@ -194,10 +182,12 @@ export function LoginPage() {
       subtitle="Log in to read reviews and share your own."
       footer={
         <>
-          Not a member?{' '}
+          Are you a student?{' '}
           <Link to="/register" className="font-semibold text-ink underline underline-offset-4">
             Register now
           </Link>
+          {/* Only students sign themselves up; everyone else is given an account */}
+          <span className="mt-2 block text-sm text-zinc-500">Teachers and administrators get their account from an administrator.</span>
         </>
       }
     >
@@ -209,34 +199,6 @@ export function LoginPage() {
           Login
         </Button>
       </form>
-
-      {/* One-click logins for the seeded accounts, in development only */}
-      {import.meta.env.DEV && (
-        <>
-          <div className="my-8 flex items-center gap-4 text-sm text-zinc-600">
-            <span className="h-px flex-1 bg-zinc-200" />
-            or continue as
-            <span className="h-px flex-1 bg-zinc-200" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {DEMO_ACCOUNTS.map(({ label, initial, email, password }) => (
-              <button
-                key={label}
-                type="button"
-                disabled={mutation.isPending}
-                onClick={() => {
-                  form.reset({ email, password })
-                  submit({ email, password })
-                }}
-                className="flex h-14 cursor-pointer items-center justify-center gap-3 rounded-full border-[1.5px] border-zinc-300 text-base font-medium transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span className="grid size-8 place-items-center rounded-full bg-ink text-sm font-semibold text-white">{initial}</span>
-                {label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
     </AuthShell>
   )
 }
@@ -255,18 +217,19 @@ export function RegisterPage() {
 
   return (
     <AuthShell
-      title="Join us!"
+      title="Student sign-up"
       subtitle={
         <>
-          Create a free account. New members start as <strong className="font-semibold text-ink">students</strong>, who can review colleges.
+          This form is for <strong className="font-semibold text-ink">students</strong>. Create a free account to rate and review colleges.
         </>
       }
       footer={
         <>
-          Already a member?{' '}
+          Already have an account?{' '}
           <Link to="/login" className="font-semibold text-ink underline underline-offset-4">
             Login
           </Link>
+          <span className="mt-2 block text-sm text-zinc-500">Not a student? Teachers and administrators get their account from an administrator.</span>
         </>
       }
     >

@@ -12,7 +12,7 @@ cp .env.example .env    # only needed if the backend is not on http://localhost:
 npm run dev             # http://localhost:5173
 ```
 
-Log in with the seeded admin, `admin@example.com` / `Password@123`. While running `npm run dev`, the login page also has one-click **Admin** and **Student** buttons for these seeded accounts; they are left out of production builds. After `npm run seed:demo` in the backend there are also student accounts such as `arun@example.com` with the same password.
+Log in with the seeded admin, `admin@example.com` / `Password@123`. After `npm run seed:demo` in the backend there are also student accounts such as `arun@example.com` with the same password.
 
 | Command | What it does |
 |---|---|
@@ -33,8 +33,10 @@ What a user sees depends on the permissions their role grants, which the app rea
 
 | Page | Path | Needs |
 |---|---|---|
-| Log in, Register | `/login`, `/register` | Nothing |
+| Log in | `/login` | Nothing |
+| Student sign-up | `/register` | Nothing. Creates a student account only; teachers and administrators are created by an administrator on the Users page. |
 | Dashboard | `/` | Logged in |
+| My profile (edit username and email, change password) | `/profile` | Logged in |
 | Colleges (search, filter, sort) | `/colleges` | Logged in. Add: `college:create`. Edit: `college:update`. Delete: `college:delete`. |
 | College and its reviews | `/colleges/:id` | Logged in. Write a review: `review:create`, once per college. |
 | My reviews | `/my-reviews` | `review:create` |
@@ -71,3 +73,7 @@ src/
 - **The token** is kept in `localStorage`. If the API rejects it (expired, or the account was deleted) the app logs out and returns to the login page.
 - **Filters on the Colleges page live in the URL**, so a search can be bookmarked or shared and survives a refresh.
 - **Pages are loaded on demand**, so the chart library is only downloaded by people who reach the dashboard.
+
+## Credits
+
+- Login page illustration: "Raising hand" by [Storyset](https://storyset.com) (Freepik). Their free licence asks for attribution wherever the illustration is shown; it is credited here and not on the page itself.
