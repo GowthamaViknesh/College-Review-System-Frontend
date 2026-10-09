@@ -50,8 +50,11 @@ export interface Permission {
 export interface College {
   collegeId: string
   name: string
-  city: string
+  // Where it is, as names: "India", "Tamil Nadu", "Chennai". The address is the street-level part and may be empty.
+  country: string
   state: string
+  city: string
+  address: string
   description: string
   // Address of the college's picture; null if nobody has uploaded one
   image: string | null

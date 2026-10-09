@@ -105,9 +105,18 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
   return <textarea className={cn(FIELD, 'min-h-28 py-3', className)} {...props} />
 }
 
-export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+// The browser's own dropdown arrow sits hard against the right edge and cannot be moved, so it is
+// switched off and this chevron is drawn in its place, set in from the border like the text is on the left
+const SELECT_ARROW = {
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2352525b' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 0.875rem center',
+  backgroundSize: '1rem',
+}
+
+export function Select({ className, children, style, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select className={cn(FIELD, 'h-11 cursor-pointer pr-8', className)} {...props}>
+    <select className={cn(FIELD, 'h-11 cursor-pointer appearance-none truncate pr-10', className)} style={{ ...SELECT_ARROW, ...style }} {...props}>
       {children}
     </select>
   )
@@ -233,6 +242,7 @@ export function Pagination({ meta, onPage }: { meta?: Meta; onPage: (page: numbe
 // ---------- Modal ----------
 
 export function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  // wide is for forms laid out in two columns
   const titleId = useId()
 
   useEffect(() => {
@@ -249,7 +259,7 @@ export function Modal({ title, onClose, children, wide = false }: { title: strin
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/50 p-4 backdrop-blur-sm" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn('w-full rounded-3xl bg-white p-6 shadow-float sm:p-8', wide ? 'max-w-2xl' : 'max-w-md')}>
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn('w-full rounded-3xl bg-white p-6 shadow-float sm:p-8', wide ? 'max-w-4xl' : 'max-w-md')}>
         <div className="mb-5 flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-2xl leading-tight font-medium">
             {title}

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { MapPin, MessageSquareText, Star } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { z } from 'zod'
@@ -9,10 +9,11 @@ import { collegesApi } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { formatRating, plural, thumbnail } from '../lib/format'
 import { applyServerErrors } from '../lib/forms'
+import { placeOptions, usePlaces } from '../lib/places'
 import type { College } from '../lib/types'
 import { PicturePicker, uploadErrorMessage, usePreview } from './PicturePicker'
 import { useToast } from './Toast'
-import { Button, ErrorNote, Field, Input, Modal, Textarea } from './ui'
+import { Button, ErrorNote, Field, Input, Modal, Select, Textarea } from './ui'
 
 // The square tile for a college: its picture, or its initial when it has none
 export function CollegeMark({ name, image, className = 'size-12 text-xl' }: { name: string; image?: string | null; className?: string }) {
@@ -64,13 +65,49 @@ export function CollegeRow({ college, actions }: { college: College; actions?: R
 
 const collegeSchema = z.object({
   name: z.string().trim().min(2, 'At least 2 characters').max(150, 'At most 150 characters'),
-  city: z.string().trim().min(2, 'At least 2 characters').max(80, 'At most 80 characters'),
-  state: z.string().trim().min(2, 'At least 2 characters').max(80, 'At most 80 characters'),
+  country: z.string().trim().min(2, 'Choose a country').max(80, 'At most 80 characters'),
+  state: z.string().trim().min(2, 'Choose a state').max(80, 'At most 80 characters'),
+  city: z.string().trim().min(2, 'Choose a city').max(80, 'At most 80 characters'),
+  address: z.string().trim().max(300, 'At most 300 characters'),
   description: z.string().trim().max(2000, 'At most 2000 characters'),
 })
 
 type CollegeValues = z.infer<typeof collegeSchema>
-const COLLEGE_FIELDS = ['name', 'city', 'state', 'description'] as const
+const COLLEGE_FIELDS = ['name', 'country', 'state', 'city', 'address', 'description'] as const
+
+// Most colleges added here are Indian, so a new one starts there; any country can be chosen instead
+const DEFAULT_COUNTRY = 'India'
+
+interface PlaceSelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'value'> {
+  value: string
+  options: string[]
+  // What the empty first choice says, e.g. "Select state"
+  placeholder: string
+  // The lists are still downloading
+  loading: boolean
+  // True when the level above is chosen but has nothing listed under it (a country with no states, a
+  // state with no cities): the place is then typed instead of picked
+  typed: boolean
+  onChange: (value: string) => void
+}
+
+// One of the country, state and city dropdowns
+function PlaceSelect({ value, options, placeholder, loading, typed, onChange, disabled, ...props }: PlaceSelectProps) {
+  if (typed) return <Input value={value} placeholder="Type the name" onChange={(event) => onChange(event.target.value)} {...(props as object)} />
+
+  // A college saved with a name that is not in the list (spelt differently, or typed) keeps that name as a choice
+  const all = value && !options.includes(value) ? [value, ...options] : options
+  return (
+    <Select value={value} disabled={disabled || loading} onChange={(event) => onChange(event.target.value)} {...props}>
+      <option value="">{loading ? 'Loading…' : placeholder}</option>
+      {all.map((name) => (
+        <option key={name} value={name}>
+          {name}
+        </option>
+      ))}
+    </Select>
+  )
+}
 
 // Adds a college, or edits the one passed in
 export function CollegeFormModal({ college, onClose }: { college?: College; onClose: () => void }) {
@@ -89,9 +126,28 @@ export function CollegeFormModal({ college, onClose }: { college?: College; onCl
 
   const form = useForm<CollegeValues>({
     resolver: zodResolver(collegeSchema),
-    defaultValues: { name: college?.name ?? '', city: college?.city ?? '', state: college?.state ?? '', description: college?.description ?? '' },
+    defaultValues: {
+      name: college?.name ?? '',
+      country: college?.country ?? DEFAULT_COUNTRY,
+      state: college?.state ?? '',
+      city: college?.city ?? '',
+      address: college?.address ?? '',
+      description: college?.description ?? '',
+    },
   })
   const errors = form.formState.errors
+
+  // Country, then the states of that country, then the cities of that state
+  const places = usePlaces()
+  const [country, state, city] = form.watch(['country', 'state', 'city'])
+  const { countries, states, cities } = placeOptions(places, country, state)
+  const loadingPlaces = !places
+  // Choosing a different country or state empties what was chosen beneath it, which no longer belongs
+  const choose = (field: 'country' | 'state' | 'city', value: string) => {
+    form.setValue(field, value, { shouldDirty: true, shouldValidate: form.formState.isSubmitted })
+    if (field === 'country') form.setValue('state', '')
+    if (field !== 'city') form.setValue('city', '')
+  }
 
   const mutation = useMutation({
     mutationFn: async (values: CollegeValues) => {
@@ -125,7 +181,7 @@ export function CollegeFormModal({ college, onClose }: { college?: College; onCl
   })
 
   return (
-    <Modal title={college ? 'Edit college' : 'Add a college'} onClose={onClose}>
+    <Modal title={college ? 'Edit college' : 'Add a college'} onClose={onClose} wide={canSetPicture}>
       <form
         noValidate
         className="space-y-4"
@@ -135,36 +191,90 @@ export function CollegeFormModal({ college, onClose }: { college?: College; onCl
         })}
       >
         {formError && <ErrorNote>{formError}</ErrorNote>}
-        <Field label="Name" error={errors.name?.message}>
-          {({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} aria-invalid={Boolean(errors.name)} {...form.register('name')} />}
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="City" error={errors.city?.message}>
-            {({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} aria-invalid={Boolean(errors.city)} {...form.register('city')} />}
-          </Field>
-          <Field label="State" error={errors.state?.message}>
-            {({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} aria-invalid={Boolean(errors.state)} {...form.register('state')} />}
-          </Field>
+        {/* The details on the left and the picture in its own column on the right, which keeps the dialog short */}
+        <div className={canSetPicture ? 'grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,1fr)_18rem]' : undefined}>
+          <div className="min-w-0 space-y-4">
+            <Field label="Name" error={errors.name?.message}>
+              {({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} aria-invalid={Boolean(errors.name)} {...form.register('name')} />}
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Country" error={errors.country?.message}>
+                {({ id, describedBy }) => (
+                  <PlaceSelect
+                    id={id}
+                    aria-describedby={describedBy}
+                    aria-invalid={Boolean(errors.country)}
+                    value={country}
+                    options={countries}
+                    placeholder="Select country"
+                    loading={loadingPlaces}
+                    typed={false}
+                    onChange={(value) => choose('country', value)}
+                  />
+                )}
+              </Field>
+              <Field label="State" error={errors.state?.message}>
+                {({ id, describedBy }) => (
+                  <PlaceSelect
+                    id={id}
+                    aria-describedby={describedBy}
+                    aria-invalid={Boolean(errors.state)}
+                    value={state}
+                    options={states}
+                    placeholder={country ? 'Select state' : 'Choose a country first'}
+                    loading={loadingPlaces}
+                    disabled={!country}
+                    typed={!loadingPlaces && Boolean(country) && states.length === 0}
+                    onChange={(value) => choose('state', value)}
+                  />
+                )}
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="City" error={errors.city?.message}>
+                {({ id, describedBy }) => (
+                  <PlaceSelect
+                    id={id}
+                    aria-describedby={describedBy}
+                    aria-invalid={Boolean(errors.city)}
+                    value={city}
+                    options={cities}
+                    placeholder={state ? 'Select city' : 'Choose a state first'}
+                    loading={loadingPlaces}
+                    disabled={!state}
+                    typed={!loadingPlaces && Boolean(state) && cities.length === 0}
+                    onChange={(value) => choose('city', value)}
+                  />
+                )}
+              </Field>
+              <Field label="Address" error={errors.address?.message}>
+                {({ id, describedBy }) => (
+                  <Input id={id} placeholder="Street, area, postcode" autoComplete="off" aria-describedby={describedBy} aria-invalid={Boolean(errors.address)} {...form.register('address')} />
+                )}
+              </Field>
+            </div>
+            <Field label="Description" error={errors.description?.message} hint="Optional">
+              {({ id, describedBy }) => <Textarea id={id} className="block !min-h-20" aria-describedby={describedBy} aria-invalid={Boolean(errors.description)} {...form.register('description')} />}
+            </Field>
+          </div>
+          {canSetPicture && (
+            <PicturePicker
+              label="Picture"
+              stacked
+              preview={preview}
+              onPick={(file) => {
+                setPicked(file)
+                setRemoved(false)
+              }}
+              onRemove={() => {
+                setPicked(null)
+                setRemoved(true)
+              }}
+            />
+          )}
         </div>
-        <Field label="Description" error={errors.description?.message} hint="Optional">
-          {({ id, describedBy }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={Boolean(errors.description)} {...form.register('description')} />}
-        </Field>
-        {canSetPicture && (
-          <PicturePicker
-            label="Picture"
-            preview={preview}
-            onPick={(file) => {
-              setPicked(file)
-              setRemoved(false)
-            }}
-            onRemove={() => {
-              setPicked(null)
-              setRemoved(true)
-            }}
-          />
-        )}
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" className="hover:!bg-red-600 hover:!text-white hover:!ring-red-600" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" loading={mutation.isPending}>

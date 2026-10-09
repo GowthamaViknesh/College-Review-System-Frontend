@@ -53,8 +53,10 @@ export interface CollegeQuery {
 
 export interface CollegeInput {
   name: string
-  city: string
+  country: string
   state: string
+  city: string
+  address: string
   description: string
 }
 

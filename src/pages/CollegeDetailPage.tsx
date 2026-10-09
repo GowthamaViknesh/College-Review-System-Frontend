@@ -118,7 +118,8 @@ export function CollegeDetailPage() {
             <div className="min-w-0 flex-1 basis-48">
               <p className="flex items-center gap-1.5 text-sm font-medium text-zinc-600">
                 <MapPin className="size-4" aria-hidden />
-                {data.city}, {data.state}
+                {/* Street address first when there is one, then city, state and country */}
+                {[data.address, data.city, data.state, data.country].filter(Boolean).join(', ')}
               </p>
               {data.description && <p className="mt-2 text-sm leading-relaxed text-zinc-700">{data.description}</p>}
             </div>
