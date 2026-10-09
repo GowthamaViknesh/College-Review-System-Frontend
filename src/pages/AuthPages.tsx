@@ -33,7 +33,7 @@ interface PillInputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 // A rounded field with its label above it and, for passwords, a button to show what was typed
-const PillInput = forwardRef<HTMLInputElement, PillInputProps>(function PillInput({ label, error, type = 'text', className, ...props }, ref) {
+export const PillInput = forwardRef<HTMLInputElement, PillInputProps>(function PillInput({ label, error, type = 'text', className, ...props }, ref) {
   const id = useId()
   const [shown, setShown] = useState(false)
   const isPassword = type === 'password'
@@ -133,7 +133,7 @@ function Showcase() {
   )
 }
 
-function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle: ReactNode; children: ReactNode; footer: ReactNode }) {
+export function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle: ReactNode; children: ReactNode; footer: ReactNode }) {
   const { user, loading } = useAuth()
   const location = useLocation()
 
@@ -167,7 +167,7 @@ export function LoginPage() {
 
   const mutation = useMutation({
     mutationFn: authApi.login,
-    onSuccess: ({ data }) => login(data.token),
+    onSuccess: ({ data }) => login(data),
     onError: (error) => setFormError(applyServerErrors(error, form.setError, ['email', 'password'])),
   })
 
@@ -195,7 +195,12 @@ export function LoginPage() {
         {formError && <ErrorNote>{formError}</ErrorNote>}
         <PillInput label="Email" type="email" autoComplete="email" placeholder="you@example.com" error={errors.email?.message} {...form.register('email')} />
         <PillInput label="Password" type="password" autoComplete="current-password" placeholder="Your password" error={errors.password?.message} {...form.register('password')} />
-        <Button type="submit" className="!mt-8 !h-14 w-full !rounded-full !text-base" loading={mutation.isPending}>
+        <p className="!mt-3 text-right text-sm">
+          <Link to="/forgot-password" className="font-medium text-zinc-600 underline-offset-4 hover:text-ink hover:underline">
+            Forgot password?
+          </Link>
+        </p>
+        <Button type="submit" className="!mt-6 !h-14 w-full !rounded-full !text-base" loading={mutation.isPending}>
           Login
         </Button>
       </form>
@@ -211,7 +216,7 @@ export function RegisterPage() {
 
   const mutation = useMutation({
     mutationFn: authApi.register,
-    onSuccess: ({ data }) => login(data.token),
+    onSuccess: ({ data }) => login(data),
     onError: (error) => setFormError(applyServerErrors(error, form.setError, ['username', 'email', 'password'])),
   })
 

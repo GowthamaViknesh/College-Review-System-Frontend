@@ -37,6 +37,13 @@ body,
   height: 100%;
 }
 
+/* Stops the page being dragged past its top or bottom edge. Without this, pulling the page (touchpad,
+   touch screen) slides everything, the full-height sidebar included, and shows a blank strip behind it. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
 body {
   @apply bg-white font-sans text-ink antialiased;
 }

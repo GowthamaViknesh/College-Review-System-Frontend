@@ -15,12 +15,24 @@ export interface Credentials {
   password: string
 }
 
+// What logging in hands back: a short-lived token for requests, and one to renew it with
+export interface Tokens {
+  token: string
+  refreshToken: string
+}
+
 export const authApi = {
-  login: (body: Credentials) => request<{ user: User; token: string }>('/auth/login', { method: 'POST', body }),
-  register: (body: Credentials & { username: string }) => request<{ user: User; token: string }>('/auth/register', { method: 'POST', body }),
+  login: (body: Credentials) => request<{ user: User } & Tokens>('/auth/login', { method: 'POST', body }),
+  register: (body: Credentials & { username: string }) => request<{ user: User } & Tokens>('/auth/register', { method: 'POST', body }),
+  // Tells the server to stop renewing this login. Renewing itself is done inside request(), not from here.
+  logout: (refreshToken: string) => request<void>('/auth/logout', { method: 'POST', body: { refreshToken } }),
+  // Emails a reset code if the address has an account. The answer is the same either way.
+  forgotPassword: (email: string) => request<{ message: string }>('/auth/forgot-password', { method: 'POST', body: { email } }),
+  resetPassword: (body: { email: string; code: string; newPassword: string }) => request<void>('/auth/reset-password', { method: 'POST', body }),
   me: () => request<Me>('/auth/me'),
   updateProfile: (body: { username?: string; email?: string }) => request<{ user: User }>('/auth/me', { method: 'PATCH', body }),
-  changePassword: (body: { currentPassword: string; newPassword: string }) => request<void>('/auth/me/password', { method: 'PATCH', body }),
+  // Changing the password ends every login, this one included, so the server sends a new pair of tokens back
+  changePassword: (body: { currentPassword: string; newPassword: string }) => request<Tokens>('/auth/me/password', { method: 'PATCH', body }),
   uploadAvatar: (file: File) => request<{ user: User }>('/auth/me/avatar', { method: 'PUT', body: pictureForm(file) }),
   removeAvatar: () => request<{ user: User }>('/auth/me/avatar', { method: 'DELETE' }),
 }

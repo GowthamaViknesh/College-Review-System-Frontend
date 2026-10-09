@@ -6,6 +6,7 @@ import { AppLayout, RequirePermission } from './components/Layout'
 import { ToastProvider } from './components/Toast'
 import { ApiError } from './lib/api'
 import { LoginPage, RegisterPage } from './pages/AuthPages'
+import { ForgotPasswordPage, ResetPasswordPage } from './pages/PasswordResetPages'
 
 // Each page is downloaded the first time it is opened, so the login screen stays small
 // and the chart library is only fetched by people who reach the dashboard
@@ -38,6 +39,8 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               {/* Everything below needs a logged-in user; AppLayout redirects to /login otherwise */}
               <Route element={<AppLayout />}>

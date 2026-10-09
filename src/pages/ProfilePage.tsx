@@ -121,15 +121,18 @@ function PictureForm() {
 
 function PasswordForm() {
   const toast = useToast()
+  const { keepSession } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const form = useForm<PasswordValues>({ resolver: zodResolver(passwordSchema), defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' } })
   const errors = form.formState.errors
 
   const mutation = useMutation({
     mutationFn: ({ currentPassword, newPassword }: PasswordValues) => authApi.changePassword({ currentPassword, newPassword }),
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
+      // The change logged out every device. These tokens keep this one logged in.
+      keepSession(data)
       form.reset()
-      toast.success('Password changed')
+      toast.success('Password changed. Other devices have been logged out.')
     },
     onError: (error) => setFormError(applyServerErrors(error, form.setError, ['currentPassword', 'newPassword'])),
   })
@@ -137,7 +140,7 @@ function PasswordForm() {
   return (
     <Card>
       <h2 className="text-xl font-medium">Password</h2>
-      <p className="mt-0.5 mb-5 text-sm text-zinc-600">Enter your current password to set a new one.</p>
+      <p className="mt-0.5 mb-5 text-sm text-zinc-600">Enter your current password to set a new one. Changing it logs you out on every other device.</p>
       <form
         noValidate
         className="space-y-4"

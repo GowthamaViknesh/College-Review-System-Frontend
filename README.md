@@ -73,7 +73,7 @@ src/
     reviews.tsx        review card and the write/edit form
     Toast.tsx          brief confirmation and error messages
   lib/
-    api.ts             fetch wrapper: adds the token, turns error responses into ApiError
+    api.ts             fetch wrapper: adds the token, renews it when it expires, turns error responses into ApiError
     forms.ts           puts the API's per-field validation errors under the right inputs
     types.ts           shapes of what the API returns
     format.ts          dates, ratings, plurals
@@ -84,7 +84,8 @@ src/
 
 - **Server data** is fetched and cached with TanStack Query. After a change (a new review, a deleted college) the affected lists are refetched, so averages and counts on screen are never stale.
 - **Forms** use React Hook Form with Zod schemas that mirror the API's rules, so most mistakes are caught before a request is sent. Errors the API does return are shown under the field they belong to.
-- **The token** is kept in `localStorage`. If the API rejects it (expired, or the account was deleted) the app logs out and returns to the login page.
+- **Forgotten password.** "Forgot password?" on the login page asks for the email, then for the 6-digit code that was emailed together with a new password. A new code can be requested after 60 seconds. Afterwards the person logs in with the new password.
+- **Staying logged in.** Logging in returns a short-lived access token and a longer-lived refresh token, both kept in `localStorage`. `api.ts` renews the access token by itself shortly before it expires, or when the API refuses it, and repeats the request, so nobody is interrupted. Requests that fail together share one renewal, because a refresh token works only once. If the login cannot be renewed (unused for too long, account deleted, password changed on another device) the app returns to the login page. Logging out also ends the login on the server.
 - **Filters on the Colleges page live in the URL**, so a search can be bookmarked or shared and survives a refresh.
 - **Pages are loaded on demand**, so the chart library is only downloaded by people who reach the dashboard.
 

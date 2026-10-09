@@ -12,8 +12,11 @@ const PAGE_SIZE = 12
 // The actions the API records, grouped the way they appear in the filter
 const ACTIONS = [
   'auth:login',
+  'auth:logout',
   'auth:register',
   'auth:password_change',
+  'auth:password_reset_request',
+  'auth:password_reset',
   'profile:update',
   'user:create',
   'user:delete',
