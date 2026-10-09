@@ -24,6 +24,8 @@ export interface User {
   role: RoleRef | null
   // Address of the profile picture; null if they have not uploaded one
   avatar: string | null
+  // When they last logged in or used the site, to about a minute; null if they never have
+  lastActiveAt: string | null
   createdAt: string
 }
 

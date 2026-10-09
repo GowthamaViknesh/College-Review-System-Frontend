@@ -19,6 +19,7 @@ const ACTIONS = [
   'auth:password_reset',
   'profile:update',
   'user:create',
+  'user:update',
   'user:delete',
   'role:assign',
   'role:create',
@@ -101,7 +102,7 @@ export function ActionLogsPage() {
           <Card className={`relative overflow-x-auto p-2 transition-opacity ${query.isPlaceholderData ? 'opacity-60' : ''}`}>
             <table className="w-full min-w-[52rem] text-left text-sm">
               <thead>
-                <tr className="text-xs text-zinc-500">
+                <tr className="text-sm text-zinc-700">
                   {['When', 'Who', 'Action', 'Outcome', 'Details'].map((heading) => (
                     <th key={heading} scope="col" className="px-4 py-3 font-semibold">
                       {heading}

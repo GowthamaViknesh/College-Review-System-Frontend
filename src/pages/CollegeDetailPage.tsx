@@ -1,12 +1,12 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, MapPin, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, MapPin, Pencil, PenLine, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { collegesApi, reviewsApi, type ReviewSort } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { CollegeFormModal, CollegeMark } from '../components/colleges'
 import { PageHeader } from '../components/Layout'
-import { ReviewCard, ReviewForm } from '../components/reviews'
+import { ReviewCard } from '../components/reviews'
 import { useToast } from '../components/Toast'
 import { Button, Card, ConfirmDialog, EmptyState, ErrorNote, Pagination, RatingRing, Select, Spinner, Stars } from '../components/ui'
 import { ApiError, errorMessage } from '../lib/api'
@@ -86,6 +86,8 @@ export function CollegeDetailPage() {
 
   const data = college.data
   const reviewList = reviews.data?.data.reviews ?? []
+  // Writing (or changing) a review happens on its own page
+  const reviewPage = `/colleges/${id}/review`
 
   return (
     <>
@@ -94,6 +96,12 @@ export function CollegeDetailPage() {
         title={data.name}
         actions={
           <>
+            {canReview && !mine.isPending && (
+              <Link to={reviewPage} className="inline-flex h-11 items-center gap-2 rounded-xl bg-ink px-5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-zinc-800">
+                <PenLine className="size-4" aria-hidden />
+                {mine.data ? 'Edit your review' : 'Write a review'}
+              </Link>
+            )}
             {can('college:update') && (
               <Button variant="secondary" onClick={() => setEditing(true)}>
                 <Pencil className="size-4" aria-hidden />
@@ -110,14 +118,15 @@ export function CollegeDetailPage() {
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <div className="min-w-0 space-y-6">
-          {data.image && <img src={data.image} alt={`${data.name}`} className="h-56 w-full rounded-3xl bg-panel object-cover sm:h-72" />}
+      {/* The college on the left, what students say about it on the right */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+        <div className="min-w-0 space-y-6 xl:sticky xl:top-6 xl:self-start">
+          {data.image && <img src={data.image} alt={`${data.name}`} className="h-56 w-full rounded-3xl bg-panel object-cover sm:h-80" />}
           <Card className="flex flex-wrap items-center gap-5">
             {!data.image && <CollegeMark name={data.name} className="size-16 text-3xl" />}
             <div className="min-w-0 flex-1 basis-48">
               <p className="flex items-center gap-1.5 text-sm font-medium text-zinc-600">
-                <MapPin className="size-4" aria-hidden />
+                <MapPin className="size-4 shrink-0" aria-hidden />
                 {/* Street address first when there is one, then city, state and country */}
                 {[data.address, data.city, data.state, data.country].filter(Boolean).join(', ')}
               </p>
@@ -131,76 +140,60 @@ export function CollegeDetailPage() {
               </div>
             </div>
           </Card>
+        </div>
 
-          <section aria-labelledby="reviews-heading">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <section aria-labelledby="reviews-heading" className="min-w-0">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
               <h2 id="reviews-heading" className="text-2xl font-medium">
                 Reviews
               </h2>
-              {data.reviewCount > 1 && (
-                <Select
-                  value={sort}
-                  onChange={(event) => {
-                    setSort(event.target.value as ReviewSort)
-                    setPage(1)
-                  }}
-                  aria-label="Sort reviews"
-                  className="!w-44"
-                >
-                  {SORTS.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              )}
+              {!canReview && <p className="mt-0.5 text-xs text-zinc-500">Written by students, so that ratings reflect student experience.</p>}
             </div>
-
-            {reviews.isPending ? (
-              <Spinner label="Loading reviews" />
-            ) : reviews.isError ? (
-              <ErrorNote>{errorMessage(reviews.error)}</ErrorNote>
-            ) : reviewList.length === 0 ? (
-              <EmptyState title="No reviews yet">{canReview ? 'Be the first to review this college.' : 'Students have not reviewed this college yet.'}</EmptyState>
-            ) : (
-              <>
-                <ul className={`space-y-3 transition-opacity ${reviews.isPlaceholderData ? 'opacity-60' : ''}`}>
-                  {reviewList.map((review) => (
-                    <ReviewCard key={review.reviewId} review={review} />
-                  ))}
-                </ul>
-                <Pagination meta={reviews.data?.meta} onPage={setPage} />
-              </>
+            {data.reviewCount > 1 && (
+              <Select
+                value={sort}
+                onChange={(event) => {
+                  setSort(event.target.value as ReviewSort)
+                  setPage(1)
+                }}
+                aria-label="Sort reviews"
+                className="!w-44"
+              >
+                {SORTS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
             )}
-          </section>
-        </div>
+          </div>
 
-        {/* Right column: write a review, or see why you cannot */}
-        <aside className="min-w-0">
-          <Card className="xl:sticky xl:top-6">
-            {!canReview ? (
-              <>
-                <h2 className="text-xl font-medium">Reviews come from students</h2>
-                <p className="mt-1 text-sm text-zinc-600">Your role ({user?.role?.name ?? 'none'}) can read reviews but not write them, so that ratings reflect student experience.</p>
-              </>
-            ) : mine.isPending ? (
-              <Spinner />
-            ) : mine.data ? (
-              <>
-                <h2 className="text-xl font-medium">You reviewed this college</h2>
-                <p className="mt-1 mb-3 text-sm text-zinc-600">One review per student keeps the average fair. You can edit or delete yours.</p>
-                <ul>
-                  <ReviewCard review={mine.data} />
-                </ul>
-              </>
-            ) : (
-              <>
-                <h2 className="mb-3 text-xl font-medium">Write a review</h2>
-                <ReviewForm collegeId={id} />
-              </>
-            )}
-          </Card>
-        </aside>
+          {reviews.isPending ? (
+            <Spinner label="Loading reviews" />
+          ) : reviews.isError ? (
+            <ErrorNote>{errorMessage(reviews.error)}</ErrorNote>
+          ) : reviewList.length === 0 ? (
+            <EmptyState title="No reviews yet">
+              {canReview ? (
+                <Link to={reviewPage} className="font-semibold text-ink underline underline-offset-4">
+                  Be the first to review this college
+                </Link>
+              ) : (
+                'Students have not reviewed this college yet.'
+              )}
+            </EmptyState>
+          ) : (
+            <>
+              <ul className={`space-y-3 transition-opacity ${reviews.isPlaceholderData ? 'opacity-60' : ''}`}>
+                {reviewList.map((review) => (
+                  <ReviewCard key={review.reviewId} review={review} />
+                ))}
+              </ul>
+              <Pagination meta={reviews.data?.meta} onPage={setPage} />
+            </>
+          )}
+        </section>
       </div>
 
       {editing && <CollegeFormModal college={data} onClose={() => setEditing(false)} />}

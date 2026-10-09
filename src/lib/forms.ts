@@ -1,6 +1,10 @@
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form'
 import { ApiError, errorMessage } from './api'
 
+// What a toast says when a save fails. The details are on the form: under the fields they concern, or
+// above it. The toast makes sure the failure is noticed even if that part of the form is out of sight.
+export const NOT_SAVED = 'Not saved. Check the highlighted fields.'
+
 // Puts the API's per-field validation errors under the matching form fields.
 // Returns a message for anything that does not belong to a field, to show above the form.
 export function applyServerErrors<T extends FieldValues>(error: unknown, setError: UseFormSetError<T>, fields: readonly Path<T>[]): string | null {

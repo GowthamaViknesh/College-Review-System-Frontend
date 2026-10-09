@@ -5,6 +5,22 @@ const weekdayFormat = new Intl.DateTimeFormat('en-IN', { weekday: 'short', timeZ
 export const formatDate = (iso: string) => dateFormat.format(new Date(iso))
 export const formatDateTime = (iso: string) => dateTimeFormat.format(new Date(iso))
 
+// How long ago something happened, in words: "Just now", "5 minutes ago", "Yesterday".
+// Anything older than a week is shown as its date, which reads better than "23 days ago".
+const relativeFormat = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+export function formatAgo(iso: string) {
+  const seconds = Math.round((Date.now() - new Date(iso).getTime()) / 1000)
+  if (seconds < 60) return 'Just now'
+  const sentence = (value: number, unit: Intl.RelativeTimeFormatUnit) => {
+    const text = relativeFormat.format(-value, unit)
+    return text.charAt(0).toUpperCase() + text.slice(1)
+  }
+  if (seconds < 3600) return sentence(Math.floor(seconds / 60), 'minute')
+  if (seconds < 86_400) return sentence(Math.floor(seconds / 3600), 'hour')
+  if (seconds < 7 * 86_400) return sentence(Math.floor(seconds / 86_400), 'day')
+  return formatDate(iso)
+}
+
 // "2026-10-09" -> "fri". The API counts days in UTC, so the label is read in UTC too.
 export const weekdayOf = (dateKey: string) => weekdayFormat.format(new Date(`${dateKey}T00:00:00Z`)).toLowerCase()
 

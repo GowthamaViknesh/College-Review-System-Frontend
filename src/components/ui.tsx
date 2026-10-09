@@ -214,8 +214,10 @@ export function RatingRing({ rating, size = 56 }: { rating: number | null; size?
 
 // ---------- Pagination ----------
 
-export function Pagination({ meta, onPage }: { meta?: Meta; onPage: (page: number) => void }) {
-  if (!meta || meta.totalPages <= 1) return null
+// Normally hidden when everything fits on one page. A page that lets people choose how many rows to
+// show passes always, so the controls stay where they are instead of appearing and disappearing.
+export function Pagination({ meta, onPage, always = false }: { meta?: Meta; onPage: (page: number) => void; always?: boolean }) {
+  if (!meta || (meta.totalPages <= 1 && !always) || meta.total === 0) return null
   const first = (meta.page - 1) * meta.limit + 1
   const last = Math.min(meta.page * meta.limit, meta.total)
 
@@ -229,7 +231,7 @@ export function Pagination({ meta, onPage }: { meta?: Meta; onPage: (page: numbe
           <ChevronLeft className="size-4" aria-hidden />
         </Button>
         <span className="min-w-16 text-center text-sm font-semibold">
-          {meta.page} / {meta.totalPages}
+          {meta.page} / {Math.max(meta.totalPages, 1)}
         </span>
         <Button variant="secondary" size="icon" disabled={meta.page >= meta.totalPages} onClick={() => onPage(meta.page + 1)} aria-label="Next page">
           <ChevronRight className="size-4" aria-hidden />

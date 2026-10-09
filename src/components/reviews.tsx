@@ -9,7 +9,7 @@ import { reviewsApi } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { errorMessage } from '../lib/api'
 import { displayName, formatDate } from '../lib/format'
-import { applyServerErrors } from '../lib/forms'
+import { applyServerErrors, NOT_SAVED } from '../lib/forms'
 import type { Review } from '../lib/types'
 import { useToast } from './Toast'
 import { Avatar, Button, ConfirmDialog, ErrorNote, Field, Modal, StarInput, Stars, Textarea } from './ui'
@@ -44,7 +44,11 @@ export function ReviewForm({ collegeId, review, onDone, onCancel }: { collegeId:
       form.reset({ rating: 0, comment: '' })
       onDone?.()
     },
-    onError: (error) => setFormError(applyServerErrors(error, form.setError, ['rating', 'comment'])),
+    onError: (error) => {
+      const message = applyServerErrors(error, form.setError, ['rating', 'comment'])
+      setFormError(message)
+      toast.error(message ?? NOT_SAVED)
+    },
   })
 
   return (

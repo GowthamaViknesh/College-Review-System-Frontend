@@ -13,6 +13,7 @@ import { ForgotPasswordPage, ResetPasswordPage } from './pages/PasswordResetPage
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const CollegesPage = lazy(() => import('./pages/CollegesPage').then((module) => ({ default: module.CollegesPage })))
 const CollegeDetailPage = lazy(() => import('./pages/CollegeDetailPage').then((module) => ({ default: module.CollegeDetailPage })))
+const WriteReviewPage = lazy(() => import('./pages/WriteReviewPage').then((module) => ({ default: module.WriteReviewPage })))
 const MyReviewsPage = lazy(() => import('./pages/MyReviewsPage').then((module) => ({ default: module.MyReviewsPage })))
 const UsersPage = lazy(() => import('./pages/UsersPage').then((module) => ({ default: module.UsersPage })))
 const RolesPage = lazy(() => import('./pages/RolesPage').then((module) => ({ default: module.RolesPage })))
@@ -50,6 +51,14 @@ export default function App() {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="colleges" element={<CollegesPage />} />
                 <Route path="colleges/:id" element={<CollegeDetailPage />} />
+                <Route
+                  path="colleges/:id/review"
+                  element={
+                    <RequirePermission anyOf={['review:create']}>
+                      <WriteReviewPage />
+                    </RequirePermission>
+                  }
+                />
                 <Route
                   path="my-reviews"
                   element={

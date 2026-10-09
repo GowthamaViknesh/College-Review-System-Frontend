@@ -13,7 +13,7 @@ import { PicturePicker, uploadErrorMessage } from '../components/PicturePicker'
 import { useToast } from '../components/Toast'
 import { Badge, Button, Card, ErrorNote, Field, Input } from '../components/ui'
 import { displayName, formatDate, plural } from '../lib/format'
-import { applyServerErrors } from '../lib/forms'
+import { applyServerErrors, NOT_SAVED } from '../lib/forms'
 
 // The same rules the API applies
 const detailsSchema = z.object({
@@ -49,7 +49,11 @@ function DetailsForm() {
       form.reset({ username: data.user.username, email: data.user.email })
       toast.success('Profile updated')
     },
-    onError: (error) => setFormError(applyServerErrors(error, form.setError, ['username', 'email'])),
+    onError: (error) => {
+      const message = applyServerErrors(error, form.setError, ['username', 'email'])
+      setFormError(message)
+      toast.error(message ?? NOT_SAVED)
+    },
   })
 
   return (
@@ -100,8 +104,12 @@ function PictureForm() {
     queryClient.invalidateQueries()
     toast.success(message)
   }
-  const upload = useMutation({ mutationFn: authApi.uploadAvatar, onMutate: () => setError(null), onSuccess: finish('Profile picture updated'), onError: (e) => setError(uploadErrorMessage(e)) })
-  const remove = useMutation({ mutationFn: authApi.removeAvatar, onMutate: () => setError(null), onSuccess: finish('Profile picture removed'), onError: (e) => setError(uploadErrorMessage(e)) })
+  const fail = (error: unknown) => {
+    setError(uploadErrorMessage(error))
+    toast.error(uploadErrorMessage(error))
+  }
+  const upload = useMutation({ mutationFn: authApi.uploadAvatar, onMutate: () => setError(null), onSuccess: finish('Profile picture updated'), onError: fail })
+  const remove = useMutation({ mutationFn: authApi.removeAvatar, onMutate: () => setError(null), onSuccess: finish('Profile picture removed'), onError: fail })
 
   return (
     <Card>
@@ -134,7 +142,11 @@ function PasswordForm() {
       form.reset()
       toast.success('Password changed. Other devices have been logged out.')
     },
-    onError: (error) => setFormError(applyServerErrors(error, form.setError, ['currentPassword', 'newPassword'])),
+    onError: (error) => {
+      const message = applyServerErrors(error, form.setError, ['currentPassword', 'newPassword'])
+      setFormError(message)
+      toast.error(message ?? NOT_SAVED)
+    },
   })
 
   return (

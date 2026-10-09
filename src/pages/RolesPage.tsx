@@ -11,7 +11,7 @@ import { useToast } from '../components/Toast'
 import { Badge, Button, Card, ConfirmDialog, Drawer, EmptyState, ErrorNote, Field, Input, Spinner } from '../components/ui'
 import { errorMessage } from '../lib/api'
 import { formatDate, plural } from '../lib/format'
-import { applyServerErrors } from '../lib/forms'
+import { applyServerErrors, NOT_SAVED } from '../lib/forms'
 import type { Permission, Role } from '../lib/types'
 
 // The one role the API never lets anyone change or delete
@@ -67,6 +67,7 @@ function RoleDrawer({ role, permissions, onClose }: { role?: Role; permissions: 
       // Role "x" already exists
       if (message?.includes('already exists')) form.setError('name', { message })
       else setFormError(message)
+      toast.error(message ?? NOT_SAVED)
     },
   })
 
@@ -191,7 +192,7 @@ export function RolesPage() {
         <Card className="relative overflow-x-auto p-2">
           <table className="w-full min-w-[46rem] text-left text-sm">
             <thead>
-              <tr className="text-xs text-zinc-500">
+              <tr className="text-sm text-zinc-700">
                 <th scope="col" className="w-64 px-4 py-3 font-semibold">
                   Role
                 </th>

@@ -109,6 +109,10 @@ export interface CreateUserInput {
 export const usersApi = {
   list: (query: UserQuery) => request<{ users: User[] }>('/users', { query: { ...query } }),
   create: (body: CreateUserInput) => request<{ user: User }>('/users', { method: 'POST', body }),
+  // Someone else's username or email; their role is setRole, and their password is theirs alone to change
+  update: (id: string, body: { username?: string; email?: string }) => request<{ user: User }>(`/users/${id}`, { method: 'PATCH', body }),
+  uploadAvatar: (id: string, file: File) => request<{ user: User }>(`/users/${id}/avatar`, { method: 'PUT', body: pictureForm(file) }),
+  removeAvatar: (id: string) => request<{ user: User }>(`/users/${id}/avatar`, { method: 'DELETE' }),
   setRole: (id: string, role: string) => request<{ user: User }>(`/users/${id}/role`, { method: 'PATCH', body: { role } }),
   remove: (id: string) => request<void>(`/users/${id}`, { method: 'DELETE' }),
 }

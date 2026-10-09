@@ -52,7 +52,8 @@ What a user sees depends on the permissions their role grants, which the app rea
 | Dashboard | `/dashboard` (`/` redirects here) | Logged in |
 | My profile (edit username and email, change password) | `/profile` | Logged in |
 | Colleges (search, filter, sort) | `/colleges` | Logged in. Add: `college:create`. Edit: `college:update`. Delete: `college:delete`. |
-| College and its reviews | `/colleges/:id` | Logged in. Write a review: `review:create`, once per college. |
+| College details and its reviews | `/colleges/:id` | Logged in |
+| Write or edit your review of a college | `/colleges/:id/review` | `review:create`, one review per college |
 | My reviews | `/my-reviews` | `review:create` |
 | Users | `/users` | `user:read` to list, `user:create` to add, `role:assign` to change a role, `user:delete` to delete |
 | Roles | `/roles` | `role:read`; `role:create`, `role:update`, `role:delete` for the buttons |

@@ -1,14 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { MapPin, MessageSquareText, Star } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { MapPin, MessageSquareText, PenLine, Star } from 'lucide-react'
 import { useState, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { z } from 'zod'
-import { collegesApi } from '../api/resources'
+import { collegesApi, reviewsApi } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { formatRating, plural, thumbnail } from '../lib/format'
-import { applyServerErrors } from '../lib/forms'
+import { applyServerErrors, NOT_SAVED } from '../lib/forms'
 import { placeOptions, usePlaces } from '../lib/places'
 import type { College } from '../lib/types'
 import { PicturePicker, uploadErrorMessage, usePreview } from './PicturePicker'
@@ -25,8 +25,22 @@ export function CollegeMark({ name, image, className = 'size-12 text-xl' }: { na
   )
 }
 
+// The colleges the logged-in person has already reviewed, so a list can offer "Edit review" for those
+// and "Write review" for the rest. Asked for once and shared by every row; empty for anyone who cannot review.
+function useReviewedColleges() {
+  const { user, can } = useAuth()
+  const reviewed = useQuery({
+    queryKey: ['reviews', 'mine', 'colleges', user?.userId],
+    queryFn: () => reviewsApi.list({ user: user?.userId, limit: 100 }).then((result) => result.data.reviews.map((review) => review.college?.collegeId)),
+    enabled: can('review:create') && Boolean(user),
+  })
+  return new Set(reviewed.data)
+}
+
 // One line of a college list: name and place on the left, rating and review count, then the actions
 export function CollegeRow({ college, actions }: { college: College; actions?: ReactNode }) {
+  const { can } = useAuth()
+  const reviewed = useReviewedColleges()
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-3xl bg-panel p-3 pr-4 transition-shadow hover:shadow-soft">
       <CollegeMark name={college.name} image={college.image} />
@@ -49,8 +63,19 @@ export function CollegeRow({ college, actions }: { college: College; actions?: R
           {college.reviewCount}
         </span>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {actions}
+        {/* Straight to the review page; the same page edits a review that already exists */}
+        {can('review:create') && (
+          <Link
+            to={`/colleges/${college.collegeId}/review`}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3.5 text-xs font-semibold whitespace-nowrap text-ink ring-1 ring-zinc-200 transition-colors ring-inset hover:bg-zinc-50"
+            aria-label={`${reviewed.has(college.collegeId) ? 'Edit your review of' : 'Write a review of'} ${college.name}`}
+          >
+            <PenLine className="size-3.5" aria-hidden />
+            {reviewed.has(college.collegeId) ? 'Edit review' : 'Write review'}
+          </Link>
+        )}
         <Link
           to={`/colleges/${college.collegeId}`}
           className="inline-flex h-9 items-center rounded-xl bg-ink px-4 text-xs font-semibold whitespace-nowrap text-white transition-colors hover:bg-zinc-800"
@@ -177,6 +202,7 @@ export function CollegeFormModal({ college, onClose }: { college?: College; onCl
       // "A college named X already exists" belongs under the name field
       if (message?.includes('already exists')) form.setError('name', { message })
       else setFormError(message)
+      toast.error(message ?? NOT_SAVED)
     },
   })
 
