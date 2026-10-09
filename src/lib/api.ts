@@ -1,6 +1,12 @@
 import type { FieldError, Meta } from './types'
 
-const BASE = '/api/v1'
+// Where the API is. While developing this is empty: requests go to the Vite dev server, which forwards
+// /api to the backend. For a deployed site, VITE_API_URL is the backend's address (set at build time),
+// because the frontend and the backend are then on different hosts.
+const API_URL = String(import.meta.env.VITE_API_URL ?? '')
+  .trim()
+  .replace(/\/+$/, '')
+const BASE = `${API_URL}/api/v1`
 const TOKEN_KEY = 'college-reviews.token'
 
 // An error response from the API: the status, the message, and any per-field validation errors

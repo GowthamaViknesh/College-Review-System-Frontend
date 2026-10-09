@@ -23,9 +23,21 @@ Log in with the seeded admin, `admin@example.com` / `Password@123`. After `npm r
 
 ## How it talks to the backend
 
-The browser only ever calls the Vite dev server. Requests to `/api` are forwarded to the backend (`VITE_API_TARGET`, default `http://localhost:5000`), so no CORS setup is needed in development.
+**While developing**, the browser only ever calls the Vite dev server. Requests to `/api` are forwarded to the backend (`VITE_API_TARGET`, default `http://localhost:5000`), so no CORS setup is needed.
 
-In production, serve `dist/` and the API from the same origin (for example behind one reverse proxy that sends `/api` to the backend), or set the backend's `CORS_ORIGIN` to the frontend's address.
+**When deployed**, the frontend and the backend are on different hosts, so the site has to be told where the API is.
+
+| Variable | When it is read | Value |
+|---|---|---|
+| `VITE_API_TARGET` | By the dev server | The backend on your machine. Not used in a deployed build. |
+| `VITE_API_URL` | When the site is built | The backend's public address, e.g. `https://your-backend.onrender.com`. Leave unset while developing. |
+
+## Deploying
+
+1. In your hosting provider's settings for the frontend, set `VITE_API_URL` to the backend's address. It is baked in when the site is built, so changing it later needs a rebuild.
+2. Build command `npm run build`; the folder to publish is `dist`.
+3. Add a rewrite so every path serves `index.html` (on Render static sites: a rewrite from `/*` to `/index.html`). The app handles its own addresses in the browser, so without this, opening or refreshing `/dashboard` directly returns the host's "not found" page.
+4. On the backend, add the frontend's address to `CORS_ORIGIN`. Until it is there, the browser blocks every API call.
 
 ## Pages and who sees them
 
