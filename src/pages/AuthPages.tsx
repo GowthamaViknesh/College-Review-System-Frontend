@@ -139,7 +139,7 @@ function AuthShell({ title, subtitle, children, footer }: { title: string; subti
 
   if (loading) return <Spinner label="Signing you in" />
   // Already signed in: go to where they were headed, or the dashboard
-  if (user) return <Navigate to={(location.state as { from?: string } | null)?.from ?? '/'} replace />
+  if (user) return <Navigate to={(location.state as { from?: string } | null)?.from ?? '/dashboard'} replace />
 
   return (
     // Two equal halves filling the whole window: the picture on the left, the form on the right

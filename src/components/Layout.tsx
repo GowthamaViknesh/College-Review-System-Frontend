@@ -14,7 +14,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: '/', label: 'Home', icon: House },
+  { to: '/dashboard', label: 'Home', icon: House },
   { to: '/colleges', label: 'Colleges', icon: GraduationCap },
   { to: '/my-reviews', label: 'My reviews', icon: MessageSquareText, anyOf: ['review:create'] },
   { to: '/users', label: 'Users', icon: Users, anyOf: ['user:read', 'user:create'] },
@@ -144,7 +144,7 @@ function Sidebar() {
       {/* Desktop: a full-height column on the left edge that can be collapsed to icons */}
       <aside className={cn('sticky top-0 hidden h-screen shrink-0 flex-col bg-ink py-6 transition-[width] duration-200 lg:flex', collapsed ? 'w-20 items-center px-4' : 'w-68 px-4')}>
         <div className={cn('flex items-center', collapsed ? 'flex-col gap-4' : 'justify-between gap-2 pl-1')}>
-          <NavLink to="/" className="flex min-w-0 items-center gap-3 text-base font-medium whitespace-nowrap text-white" aria-label="College Reviews home">
+          <NavLink to="/dashboard" className="flex min-w-0 items-center gap-3 text-base font-medium whitespace-nowrap text-white" aria-label="College Reviews home">
             <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white text-xl font-semibold text-ink">C.</span>
             {!collapsed && <span>College Reviews</span>}
           </NavLink>
@@ -162,7 +162,7 @@ function Sidebar() {
 
         <nav className={cn('mt-8 flex flex-1 flex-col gap-1.5', collapsed && 'items-center')} aria-label="Main">
           {items.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => rowClass(collapsed, isActive)} aria-label={label}>
+            <NavLink key={to} to={to} className={({ isActive }) => rowClass(collapsed, isActive)} aria-label={label}>
               <Icon className="size-5 shrink-0" aria-hidden />
               {collapsed ? <Tip>{label}</Tip> : <span className="truncate">{label}</span>}
             </NavLink>
@@ -177,7 +177,7 @@ function Sidebar() {
       {/* Phones and tablets: the same destinations in a bar along the bottom, with the account menu at the end */}
       <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-3xl bg-ink px-2 py-2 shadow-float lg:hidden" aria-label="Main">
         {items.map(({ to, label, icon: Icon }) => (
-          <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => rowClass(true, isActive)} aria-label={label}>
+          <NavLink key={to} to={to} className={({ isActive }) => rowClass(true, isActive)} aria-label={label}>
             <Icon className="size-5" aria-hidden />
           </NavLink>
         ))}

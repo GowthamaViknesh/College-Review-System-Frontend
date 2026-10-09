@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { lazy } from 'react'
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { AppLayout, RequirePermission } from './components/Layout'
 import { ToastProvider } from './components/Toast'
@@ -33,7 +33,7 @@ const queryClient = new QueryClient({
 function NotFoundPage() {
   return (
     <EmptyState title="Page not found">
-      <Link to="/" className="font-semibold text-ink underline underline-offset-4">
+      <Link to="/dashboard" className="font-semibold text-ink underline underline-offset-4">
         Back to the dashboard
       </Link>
     </EmptyState>
@@ -52,7 +52,9 @@ export default function App() {
 
               {/* Everything below needs a logged-in user; AppLayout redirects to /login otherwise */}
               <Route element={<AppLayout />}>
-                <Route index element={<DashboardPage />} />
+                {/* The bare address sends people to the dashboard, so old links and bookmarks keep working */}
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="colleges" element={<CollegesPage />} />
                 <Route path="colleges/:id" element={<CollegeDetailPage />} />

@@ -35,7 +35,7 @@ What a user sees depends on the permissions their role grants, which the app rea
 |---|---|---|
 | Log in | `/login` | Nothing |
 | Student sign-up | `/register` | Nothing. Creates a student account only; teachers and administrators are created by an administrator on the Users page. |
-| Dashboard | `/` | Logged in |
+| Dashboard | `/dashboard` (`/` redirects here) | Logged in |
 | My profile (edit username and email, change password) | `/profile` | Logged in |
 | Colleges (search, filter, sort) | `/colleges` | Logged in. Add: `college:create`. Edit: `college:update`. Delete: `college:delete`. |
 | College and its reviews | `/colleges/:id` | Logged in. Write a review: `review:create`, once per college. |
