@@ -1,0 +1,52 @@
+@import 'tailwindcss';
+
+/* Design tokens: a monochrome look with light geometric headings and soft grey panels */
+@theme {
+  /* One family for everything: Outfit, a geometric sans with round letters and a single-storey 'a'.
+     font-display is kept as a separate name so headings can be given their own face again later. */
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0c0c0d;
+  --color-panel: #f4f4f6;
+  --color-canvas: #e9e9ed;
+  --color-star: #f5a524;
+
+  --shadow-soft: 0 10px 30px -12px rgb(12 12 13 / 0.18);
+  --shadow-float: 0 24px 60px -20px rgb(12 12 13 / 0.35);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-white font-sans text-ink antialiased;
+}
+
+h1,
+h2,
+h3 {
+  /* Large geometric type reads better set slightly tighter */
+  @apply font-display tracking-tight;
+}
+
+/* Browsers paint fields they have filled in (saved emails and passwords) pale yellow or blue.
+   A background colour cannot override that, so the field is covered with an inset white shadow instead. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+}
+
+/* A visible focus ring for keyboard users on every interactive element */
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-ink;
+}
