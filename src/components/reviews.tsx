@@ -106,7 +106,7 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
   return (
     <li className="rounded-3xl bg-panel p-5">
       <div className="flex flex-wrap items-start gap-3">
-        <Avatar name={showCollege ? (review.college?.name ?? '?') : author} />
+        <Avatar name={showCollege ? (review.college?.name ?? '?') : author} src={showCollege ? null : review.user?.avatar} />
         <div className="min-w-0 flex-1">
           {showCollege && review.college ? (
             <Link to={`/colleges/${review.college._id}`} className="font-display text-base leading-tight font-medium underline-offset-4 hover:underline">

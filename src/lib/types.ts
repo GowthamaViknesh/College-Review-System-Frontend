@@ -22,6 +22,8 @@ export interface User {
   username: string
   email: string
   role: RoleRef | null
+  // Address of the profile picture; null if they have not uploaded one
+  avatar: string | null
   createdAt: string
 }
 
@@ -51,6 +53,8 @@ export interface College {
   city: string
   state: string
   description: string
+  // Address of the college's picture; null if nobody has uploaded one
+  image: string | null
   // null until the college has at least one review
   averageRating: number | null
   reviewCount: number
@@ -60,7 +64,7 @@ export interface College {
 export interface Review {
   _id: string
   college: { _id: string; name: string } | null
-  user: { _id: string; username: string } | null
+  user: { _id: string; username: string; avatar: string | null } | null
   rating: number
   comment: string
   createdAt: string

@@ -98,7 +98,7 @@ function UserMenu({ compact, placement }: { compact: boolean; placement: 'above'
           open && !compact && 'bg-white/10',
         )}
       >
-        <Avatar name={user.username} className="!bg-white !text-ink" />
+        <Avatar name={user.username} src={user.avatar} className="!bg-white !text-ink" />
         {!compact && (
           <>
             <span className="min-w-0 flex-1 leading-tight">

@@ -36,7 +36,7 @@ export function onUnauthorized(handler: () => void) {
 type Query = Record<string, string | number | null | undefined>
 
 interface Options {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   query?: Query
 }
@@ -53,16 +53,18 @@ export async function request<T>(path: string, { method = 'GET', body, query = {
   }
   const url = `${BASE}${path}${params.size ? `?${params}` : ''}`
   const token = tokenStore.get()
+  // A form with a file in it is sent as it is; the browser adds the right Content-Type itself
+  const isForm = body instanceof FormData
 
   let response: Response
   try {
     response = await fetch(url, {
       method,
       headers: {
-        ...(body !== undefined && { 'Content-Type': 'application/json' }),
+        ...(body !== undefined && !isForm && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, 'Cannot reach the server. Check that the API is running.')

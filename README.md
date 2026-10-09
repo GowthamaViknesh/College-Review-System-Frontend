@@ -32,6 +32,8 @@ Log in with the seeded admin, `admin@example.com` / `Password@123`. After `npm r
 | `VITE_API_TARGET` | By the dev server | The backend on your machine. Not used in a deployed build. |
 | `VITE_API_URL` | When the site is built | The backend's public address, e.g. `https://your-backend.onrender.com`. Leave unset while developing. |
 
+Picture uploads (profile and college pictures) go through the backend, which stores them with Cloudinary. The frontend needs no setting for this; if the backend has no Cloudinary settings, choosing a picture shows "Picture uploads are not set up on this server".
+
 ## Deploying
 
 1. In your hosting provider's settings for the frontend, set `VITE_API_URL` to the backend's address. It is baked in when the site is built, so changing it later needs a rebuild.

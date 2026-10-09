@@ -112,8 +112,9 @@ export function CollegeDetailPage() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-6">
+          {data.image && <img src={data.image} alt={`${data.name}`} className="h-56 w-full rounded-3xl bg-panel object-cover sm:h-72" />}
           <Card className="flex flex-wrap items-center gap-5">
-            <CollegeMark name={data.name} className="size-16 text-3xl" />
+            {!data.image && <CollegeMark name={data.name} className="size-16 text-3xl" />}
             <div className="min-w-0 flex-1 basis-48">
               <p className="flex items-center gap-1.5 text-sm font-medium text-zinc-600">
                 <MapPin className="size-4" aria-hidden />

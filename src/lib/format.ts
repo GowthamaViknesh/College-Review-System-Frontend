@@ -18,5 +18,14 @@ export const displayName = (name: string) => name.charAt(0).toUpperCase() + name
 
 export const initials = (name: string) => name.slice(0, 2).toUpperCase()
 
+// Pictures are stored far larger than a thumbnail needs. Cloudinary resizes on request when the size is
+// written into the address, so a 48px tile downloads a small file instead of the full picture.
+// Addresses from anywhere else are returned unchanged.
+export function thumbnail(url: string, size: number) {
+  const marker = '/image/upload/'
+  // Twice the shown size, so it stays sharp on high-density screens
+  return url.includes(marker) ? url.replace(marker, `${marker}c_fill,w_${size * 2},h_${size * 2},f_auto,q_auto/`) : url
+}
+
 // Joins class names, skipping anything falsy
 export const cn = (...classes: (string | false | null | undefined)[]) => classes.filter(Boolean).join(' ')

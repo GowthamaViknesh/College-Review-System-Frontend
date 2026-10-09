@@ -3,6 +3,13 @@ import type { ActionLog, College, Me, Permission, Review, Role, StatsOverview, U
 
 // One function per API endpoint, grouped by resource
 
+// A picture is sent as a form with one field, which is what the upload endpoints expect
+function pictureForm(file: File) {
+  const form = new FormData()
+  form.append('image', file)
+  return form
+}
+
 export interface Credentials {
   email: string
   password: string
@@ -14,6 +21,8 @@ export const authApi = {
   me: () => request<Me>('/auth/me'),
   updateProfile: (body: { username?: string; email?: string }) => request<{ user: User }>('/auth/me', { method: 'PATCH', body }),
   changePassword: (body: { currentPassword: string; newPassword: string }) => request<void>('/auth/me/password', { method: 'PATCH', body }),
+  uploadAvatar: (file: File) => request<{ user: User }>('/auth/me/avatar', { method: 'PUT', body: pictureForm(file) }),
+  removeAvatar: () => request<{ user: User }>('/auth/me/avatar', { method: 'DELETE' }),
 }
 
 export type CollegeSort = 'newest' | 'name' | 'rating' | 'reviews'
@@ -41,6 +50,8 @@ export const collegesApi = {
   create: (body: CollegeInput) => request<{ college: College }>('/colleges', { method: 'POST', body }),
   update: (id: string, body: Partial<CollegeInput>) => request<{ college: College }>(`/colleges/${id}`, { method: 'PATCH', body }),
   remove: (id: string) => request<void>(`/colleges/${id}`, { method: 'DELETE' }),
+  uploadImage: (id: string, file: File) => request<{ college: College }>(`/colleges/${id}/image`, { method: 'PUT', body: pictureForm(file) }),
+  removeImage: (id: string) => request<{ college: College }>(`/colleges/${id}/image`, { method: 'DELETE' }),
 }
 
 export type ReviewSort = 'newest' | 'oldest' | 'highest' | 'lowest'

@@ -46,7 +46,7 @@ function Featured({ colleges }: { colleges: College[] }) {
   return (
     <section className="flex items-center gap-3" aria-label="Top rated colleges">
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-3 rounded-3xl bg-panel p-3 pr-4">
-        <CollegeMark name={college.name} />
+        <CollegeMark name={college.name} image={college.image} />
         <div className="min-w-0 flex-1 basis-32">
           <p className="truncate font-display text-base leading-tight font-medium">{college.name}</p>
           <p className="truncate text-xs text-zinc-500">
@@ -192,7 +192,7 @@ function LatestReviews() {
       <ul className="mt-3 space-y-2.5">
         {latest.data.map((review) => (
           <li key={review._id} className="flex gap-3 rounded-3xl bg-panel p-4">
-            <Avatar name={review.user?.username ?? '?'} />
+            <Avatar name={review.user?.username ?? '?'} src={review.user?.avatar} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm">
                 <span className="font-medium">{review.user ? displayName(review.user.username) : 'Deleted user'}</span>

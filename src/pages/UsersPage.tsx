@@ -230,7 +230,7 @@ export function UsersPage() {
                         <tr key={user._id} className="border-t border-zinc-200/80">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <Avatar name={user.username} />
+                              <Avatar name={user.username} src={user.avatar} />
                               <div className="min-w-0">
                                 <p className="truncate font-semibold">
                                   {displayName(user.username)}

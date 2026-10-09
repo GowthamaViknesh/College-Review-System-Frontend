@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, LoaderCircle, Star, X } from 'lucide-react'
-import { useEffect, useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
-import { cn, formatRating } from '../lib/format'
+import { useEffect, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { cn, formatRating, thumbnail } from '../lib/format'
 import type { Meta } from '../lib/types'
 
 // ---------- Button ----------
@@ -60,7 +60,13 @@ export function Badge({ tone = 'neutral', children }: { tone?: 'neutral' | 'good
   return <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold', tones[tone])}>{children}</span>
 }
 
-export function Avatar({ name, className }: { name: string; className?: string }) {
+// A person's picture, or their initials when they have none (or it fails to load)
+export function Avatar({ name, src, className }: { name: string; src?: string | null; className?: string }) {
+  const [broken, setBroken] = useState<string | null>(null)
+
+  if (src && broken !== src) {
+    return <img src={thumbnail(src, 40)} alt="" className={cn('size-10 shrink-0 rounded-2xl bg-zinc-200 object-cover', className)} onError={() => setBroken(src)} />
+  }
   return (
     <span className={cn('grid size-10 shrink-0 place-items-center rounded-2xl bg-ink font-display text-sm font-medium text-white uppercase', className)} aria-hidden>
       {name.slice(0, 2)}

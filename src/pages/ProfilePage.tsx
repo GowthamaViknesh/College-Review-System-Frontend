@@ -9,6 +9,7 @@ import adminImage from '../assets/admin-cutout.webp'
 import studentImage from '../assets/student-cutout.webp'
 import { useAuth } from '../auth/AuthContext'
 import { PageHeader } from '../components/Layout'
+import { PicturePicker, uploadErrorMessage } from '../components/PicturePicker'
 import { useToast } from '../components/Toast'
 import { Badge, Button, Card, ErrorNote, Field, Input } from '../components/ui'
 import { displayName, formatDate, plural } from '../lib/format'
@@ -87,6 +88,37 @@ function DetailsForm() {
   )
 }
 
+// Unlike the other forms there is nothing to save afterwards: choosing a picture uploads it
+function PictureForm() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+  const toast = useToast()
+  const [error, setError] = useState<string | null>(null)
+
+  const finish = (message: string) => () => {
+    // The picture is shown in the sidebar, on reviews and in the users list
+    queryClient.invalidateQueries()
+    toast.success(message)
+  }
+  const upload = useMutation({ mutationFn: authApi.uploadAvatar, onMutate: () => setError(null), onSuccess: finish('Profile picture updated'), onError: (e) => setError(uploadErrorMessage(e)) })
+  const remove = useMutation({ mutationFn: authApi.removeAvatar, onMutate: () => setError(null), onSuccess: finish('Profile picture removed'), onError: (e) => setError(uploadErrorMessage(e)) })
+
+  return (
+    <Card>
+      <h2 className="text-xl font-medium">Profile picture</h2>
+      <p className="mt-0.5 mb-5 text-sm text-zinc-600">Shown next to your name and the reviews you write. It is cropped to a square.</p>
+      <PicturePicker
+        label="Your picture"
+        preview={user?.avatar ?? null}
+        busy={upload.isPending || remove.isPending}
+        error={error}
+        onPick={(file) => upload.mutate(file)}
+        onRemove={() => remove.mutate()}
+      />
+    </Card>
+  )
+}
+
 function PasswordForm() {
   const toast = useToast()
   const [formError, setFormError] = useState<string | null>(null)
@@ -154,7 +186,11 @@ export function ProfilePage() {
         {/* Who you are: read-only facts about the account */}
         <Card className="self-start overflow-hidden !p-0">
           <div className="flex h-44 items-end justify-center overflow-hidden bg-zinc-200/70">
-            <img src={isReviewer ? studentImage : adminImage} alt="" className="h-full object-contain object-bottom" />
+            {user.avatar ? (
+              <img src={user.avatar} alt="" className="size-full object-cover" />
+            ) : (
+              <img src={isReviewer ? studentImage : adminImage} alt="" className="h-full object-contain object-bottom" />
+            )}
           </div>
           <div className="p-5">
             <h2 className="truncate text-2xl leading-tight font-medium">{displayName(user.username)}</h2>
@@ -193,6 +229,7 @@ export function ProfilePage() {
 
         {/* What you can change */}
         <div className="min-w-0 space-y-6">
+          <PictureForm />
           <DetailsForm />
           <PasswordForm />
         </div>
