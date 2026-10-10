@@ -274,10 +274,10 @@ export function UsersPage() {
   const queryClient = useQueryClient()
   const toast = useToast()
 
-  // user:read sees everyone. user:read:college (a teacher) sees the students of their own college only;
-  // the API enforces that, this just words the page to match.
-  const seesEveryone = can('user:read')
-  const canRead = seesEveryone || can('user:read:college')
+  // Without role:assign (a teacher), the user permissions reach only the students of your own college,
+  // however many of them the role has been given. The API enforces that; this words the page to match.
+  const canRead = can('user:read')
+  const seesEveryone = canRead && can('role:assign')
   const canAssign = can('role:assign')
   const collegeOptions = useCollegeOptions(seesEveryone)
   const [college, setCollege] = useState('')
