@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, MapPin, Pencil, PenLine, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, MapPin, Pencil, PenLine, Search, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { collegesApi, reviewsApi, type ReviewSort } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
@@ -8,9 +8,12 @@ import { CollegeFormModal, CollegeMark } from '../components/colleges'
 import { PageHeader } from '../components/Layout'
 import { ReviewCard } from '../components/reviews'
 import { useToast } from '../components/Toast'
-import { Button, Card, ConfirmDialog, EmptyState, ErrorNote, Pagination, RatingRing, Select, Spinner, Stars } from '../components/ui'
+import { Button, Card, ConfirmDialog, EmptyState, ErrorNote, Input, Pagination, RatingRing, Select, Spinner, Stars } from '../components/ui'
 import { ApiError, errorMessage } from '../lib/api'
 import { plural } from '../lib/format'
+
+// How long typing has to pause before the search runs
+const SEARCH_DELAY_MS = 300
 
 const PAGE_SIZE = 5
 
@@ -19,6 +22,7 @@ const SORTS: { value: ReviewSort; label: string }[] = [
   { value: 'oldest', label: 'Oldest first' },
   { value: 'highest', label: 'Highest rated' },
   { value: 'lowest', label: 'Lowest rated' },
+  { value: 'helpful', label: 'Most upvoted' },
 ]
 
 export function CollegeDetailPage() {
@@ -32,6 +36,24 @@ export function CollegeDetailPage() {
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // What is typed in the box, and the search actually sent once typing pauses
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setTimeout(() => setSearch(searchInput.trim()), SEARCH_DELAY_MS)
+  }, [searchInput])
+
+  // Press / anywhere on the page to jump to the review search
+  useEffect(() => {
+    window.addEventListener('keydown', (event) => {
+      if (event.key === '/') {
+        event.preventDefault()
+        searchRef.current?.focus()
+      }
+    })
+  }, [])
 
   const college = useQuery({
     queryKey: ['colleges', 'detail', id],
@@ -42,7 +64,7 @@ export function CollegeDetailPage() {
 
   const reviews = useQuery({
     queryKey: ['reviews', 'college', id, { sort, page }],
-    queryFn: () => reviewsApi.list({ college: id, sort, page, limit: PAGE_SIZE }),
+    queryFn: () => reviewsApi.list({ college: id, sort, page, limit: PAGE_SIZE, search: search || undefined }),
     placeholderData: keepPreviousData,
     enabled: college.isSuccess,
   })
@@ -150,24 +172,45 @@ export function CollegeDetailPage() {
               </h2>
               {!canReview && <p className="mt-0.5 text-xs text-zinc-500">Written by students, so that ratings reflect student experience.</p>}
             </div>
-            {data.reviewCount > 1 && (
-              <Select
-                value={sort}
-                onChange={(event) => {
-                  setSort(event.target.value as ReviewSort)
-                  setPage(1)
-                }}
-                aria-label="Sort reviews"
-                className="!w-44"
-              >
-                {SORTS.map(({ value, label }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {data.reviewCount > 0 && (
+                <div className="relative">
+                  <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" aria-hidden />
+                  <Input
+                    ref={searchRef}
+                    type="search"
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    placeholder="Search reviews  ( / )"
+                    aria-label="Search reviews"
+                    className="!w-56 pl-9"
+                  />
+                </div>
+              )}
+              {data.reviewCount > 1 && (
+                <Select
+                  value={sort}
+                  onChange={(event) => {
+                    setSort(event.target.value as ReviewSort)
+                    setPage(1)
+                  }}
+                  aria-label="Sort reviews"
+                  className="!w-44"
+                >
+                  {SORTS.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </div>
           </div>
+          {search && reviews.data && (
+            <p className="mb-3 text-sm text-zinc-500" aria-live="polite">
+              {plural(reviews.data.meta?.total ?? 0, 'review')} mention “{search}”
+            </p>
+          )}
 
           {reviews.isPending ? (
             <Spinner label="Loading reviews" />
@@ -187,7 +230,7 @@ export function CollegeDetailPage() {
             <>
               <ul className={`space-y-3 transition-opacity ${reviews.isPlaceholderData ? 'opacity-60' : ''}`}>
                 {reviewList.map((review) => (
-                  <ReviewCard key={review.reviewId} review={review} />
+                  <ReviewCard key={review.reviewId} review={review} highlightTerm={search} />
                 ))}
               </ul>
               <Pagination meta={reviews.data?.meta} onPage={setPage} />

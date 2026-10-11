@@ -1,0 +1,8 @@
+# CodeRabbit settings for this repository
+language: "en-US"
+reviews:
+  auto_review:
+    enabled: true
+    # Review pull requests into develop as well as the default branch
+    base_branches:
+      - "^develop$"

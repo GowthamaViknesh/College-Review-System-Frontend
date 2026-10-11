@@ -71,7 +71,7 @@ export const collegesApi = {
   removeImage: (id: string) => request<{ college: College }>(`/colleges/${id}/image`, { method: 'DELETE' }),
 }
 
-export type ReviewSort = 'newest' | 'oldest' | 'highest' | 'lowest'
+export type ReviewSort = 'newest' | 'oldest' | 'highest' | 'lowest' | 'helpful'
 
 export interface ReviewQuery {
   page?: number
@@ -79,6 +79,7 @@ export interface ReviewQuery {
   college?: string
   user?: string
   sort?: ReviewSort
+  search?: string
 }
 
 export interface ReviewInput {
@@ -91,6 +92,8 @@ export const reviewsApi = {
   create: (body: ReviewInput & { college: string }) => request<{ review: Review }>('/reviews', { method: 'POST', body }),
   update: (id: string, body: Partial<ReviewInput>) => request<{ review: Review }>(`/reviews/${id}`, { method: 'PATCH', body }),
   remove: (id: string) => request<void>(`/reviews/${id}`, { method: 'DELETE' }),
+  upvote: (id: string) => request<{ review: Review }>(`/reviews/${id}/upvote`, { method: 'POST' }),
+  removeUpvote: (id: string) => request<{ review: Review }>(`/reviews/${id}/upvote`, { method: 'DELETE' }),
 }
 
 export interface UserQuery {

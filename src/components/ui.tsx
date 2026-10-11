@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, LoaderCircle, Star, X } from 'lucide-react'
-import { useEffect, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { useEffect, useId, useState, type ButtonHTMLAttributes, type ComponentProps, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { cn, formatRating, thumbnail } from '../lib/format'
 import type { Meta } from '../lib/types'
 
@@ -97,7 +97,7 @@ export function Field({ label, error, hint, children }: { label: string; error?:
   )
 }
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: ComponentProps<'input'>) {
   return <input className={cn(FIELD, 'h-11', className)} {...props} />
 }
 

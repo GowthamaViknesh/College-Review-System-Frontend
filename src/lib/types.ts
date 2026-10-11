@@ -74,6 +74,8 @@ export interface Review {
   user: { userId: string; username: string; avatar: string | null } | null
   rating: number
   comment: string
+  // Upvotes from other students: how many, and the userId of each person who gave one
+  votes?: { count: number; userIds: string[] }
   createdAt: string
   updatedAt: string
 }

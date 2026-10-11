@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, ThumbsUp, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -9,6 +9,7 @@ import { reviewsApi } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { errorMessage } from '../lib/api'
 import { displayName, formatDate } from '../lib/format'
+import { highlight } from '../lib/highlight'
 import { applyServerErrors, NOT_SAVED } from '../lib/forms'
 import type { Review } from '../lib/types'
 import { useToast } from './Toast'
@@ -85,7 +86,8 @@ export function ReviewForm({ collegeId, review, onDone, onCancel }: { collegeId:
 
 // One review, with edit and delete buttons for whoever is allowed to use them.
 // showCollege swaps the author line for the college name, for a list of one person's reviews.
-export function ReviewCard({ review, showCollege = false }: { review: Review; showCollege?: boolean }) {
+// highlightTerm marks the words a search matched in the comment.
+export function ReviewCard({ review, showCollege = false, highlightTerm = '' }: { review: Review; showCollege?: boolean; highlightTerm?: string }) {
   const { user, can } = useAuth()
   const queryClient = useQueryClient()
   const toast = useToast()
@@ -97,6 +99,17 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
   const canEdit = isMine && can('review:create')
   const canDelete = isMine || can('review:delete:any')
   const author = review.user ? displayName(review.user.username) : 'Deleted user'
+
+  // Upvotes come from the people who write reviews, and never on your own review
+  const voteCount = review.votes?.count ?? 0
+  const hasVoted = Boolean(user && review.votes?.userIds.includes(user.userId))
+  const canVote = !isMine && can('review:create')
+
+  const vote = useMutation({
+    mutationFn: () => (hasVoted ? reviewsApi.removeUpvote(review.reviewId) : reviewsApi.upvote(review.reviewId)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reviews'] }),
+    onError: (error) => toast.error(errorMessage(error)),
+  })
 
   const remove = useMutation({
     mutationFn: () => reviewsApi.remove(review.reviewId),
@@ -145,7 +158,38 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
           </div>
         )}
       </div>
-      <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-zinc-700">{review.comment}</p>
+      {highlightTerm ? (
+        <p
+          className="mt-3 text-sm leading-relaxed whitespace-pre-line text-zinc-700"
+          dangerouslySetInnerHTML={{ __html: highlight(review.comment, highlightTerm) }}
+        />
+      ) : (
+        <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-zinc-700">{review.comment}</p>
+      )}
+
+      <div className="mt-3">
+        {canVote ? (
+          <button
+            type="button"
+            onClick={() => vote.mutate()}
+            disabled={vote.isPending}
+            aria-pressed={hasVoted}
+            aria-label={hasVoted ? `Remove your upvote from the review by ${author}` : `Upvote the review by ${author}`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+              hasVoted ? 'bg-ink text-white hover:bg-zinc-800' : 'bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-100'
+            }`}
+          >
+            <ThumbsUp className="size-3.5" aria-hidden fill={hasVoted ? 'currentColor' : 'none'} />
+            {hasVoted ? 'Upvoted' : 'Upvote'}
+            <span className="tabular-nums">· {voteCount}</span>
+          </button>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+            <ThumbsUp className="size-3.5" aria-hidden />
+            {voteCount} {voteCount === 1 ? 'upvote' : 'upvotes'}
+          </span>
+        )}
+      </div>
 
       {editing && review.college && (
         <Modal title="Edit your review" onClose={() => setEditing(false)}>
