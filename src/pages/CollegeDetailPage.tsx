@@ -19,6 +19,7 @@ const SORTS: { value: ReviewSort; label: string }[] = [
   { value: 'oldest', label: 'Oldest first' },
   { value: 'highest', label: 'Highest rated' },
   { value: 'lowest', label: 'Lowest rated' },
+  { value: 'helpful', label: 'Most upvoted' },
 ]
 
 export function CollegeDetailPage() {

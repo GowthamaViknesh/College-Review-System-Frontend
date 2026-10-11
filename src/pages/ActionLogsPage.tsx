@@ -30,6 +30,8 @@ const ACTIONS = [
   'review:create',
   'review:update',
   'review:delete',
+  'review:upvote',
+  'review:upvote:remove',
 ]
 
 // The table's columns and how much of its width each takes
