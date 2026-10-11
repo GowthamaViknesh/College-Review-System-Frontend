@@ -79,6 +79,7 @@ export interface ReviewQuery {
   college?: string
   user?: string
   sort?: ReviewSort
+  search?: string
 }
 
 export interface ReviewInput {

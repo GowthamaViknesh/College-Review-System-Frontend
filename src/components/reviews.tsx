@@ -9,6 +9,7 @@ import { reviewsApi } from '../api/resources'
 import { useAuth } from '../auth/AuthContext'
 import { errorMessage } from '../lib/api'
 import { displayName, formatDate } from '../lib/format'
+import { highlight } from '../lib/highlight'
 import { applyServerErrors, NOT_SAVED } from '../lib/forms'
 import type { Review } from '../lib/types'
 import { useToast } from './Toast'
@@ -85,7 +86,8 @@ export function ReviewForm({ collegeId, review, onDone, onCancel }: { collegeId:
 
 // One review, with edit and delete buttons for whoever is allowed to use them.
 // showCollege swaps the author line for the college name, for a list of one person's reviews.
-export function ReviewCard({ review, showCollege = false }: { review: Review; showCollege?: boolean }) {
+// highlightTerm marks the words a search matched in the comment.
+export function ReviewCard({ review, showCollege = false, highlightTerm = '' }: { review: Review; showCollege?: boolean; highlightTerm?: string }) {
   const { user, can } = useAuth()
   const queryClient = useQueryClient()
   const toast = useToast()
@@ -156,7 +158,14 @@ export function ReviewCard({ review, showCollege = false }: { review: Review; sh
           </div>
         )}
       </div>
-      <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-zinc-700">{review.comment}</p>
+      {highlightTerm ? (
+        <p
+          className="mt-3 text-sm leading-relaxed whitespace-pre-line text-zinc-700"
+          dangerouslySetInnerHTML={{ __html: highlight(review.comment, highlightTerm) }}
+        />
+      ) : (
+        <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-zinc-700">{review.comment}</p>
+      )}
 
       <div className="mt-3">
         {canVote ? (
